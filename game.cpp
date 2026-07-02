@@ -1,3 +1,4 @@
+#include "Menu.h"
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include <cmath>
@@ -37,6 +38,7 @@ struct Line
     Line()
     {
         spriteX = curve = x = y = z = 0.f;
+        X = Y = W = clip = scale = 0.f;
         spriteId = 0;
     }
 
@@ -47,33 +49,7 @@ struct Line
         Y = (1 - scale * (y - camY)) * height / 2.f;
         W = scale * roadW * width / 2.f;
     }
-    //玩家小车类（封装玩家位置、出界判定）
-    class PlayerCar
-    {
 
-    };
-
-	//障碍物类（障碍小车和其他障碍物的出现和消失、玩家碰撞判定）
-    class obstacle
-    {
-
-    };
-
-	//游戏HUD类（显示速度、分数、时间等信息）
-    class GameHUD
-    {
-
-    };
-
-	//特效类（爆炸、烟雾、加速等特效的实现和管理）
-	class SpeedParticle
-	{
-	};
-
-	//游戏主类，将窗口、循环、事件处理、渲染等整合在一起
-	class GameCore
-	{
-	};
     void drawSprite(RenderWindow& app, Texture texArr[50])
     {
         if (spriteId == 0)
@@ -109,6 +85,16 @@ int main()
 {
     RenderWindow app(sf::VideoMode(sf::Vector2u(width, height)), "Outrun Racing!");
     app.setFramerateLimit(60);
+
+    // ========== 菜单对接代码 ==========
+    GameMenu menu(app);
+    GameMenu::MenuState menuResult = menu.RunMenu();
+    // 菜单选择退出，直接结束程序
+    if (menuResult == GameMenu::MENU_QUIT)
+    {
+        return 0;
+    }
+    // 选择开始游戏，往下执行赛车逻辑
 
     Texture t[50];
     for (int i = 1; i <= 7; i++)
@@ -209,7 +195,6 @@ int main()
             }
 
             // 失败后按R重置游戏
-           // 检测按键按下事件，游戏结束按R重置
             if (const auto* keyEvt = eventOpt->getIf<sf::Event::KeyPressed>())
             {
                 if (gameOver && keyEvt->code == sf::Keyboard::Key::R)
@@ -254,7 +239,7 @@ int main()
         // 新增：固定小车在窗口底部居中
         sf::FloatRect carBounds = playerCar.getLocalBounds();
         float carX = (width - carBounds.size.x) / 2.f;
-        float carY = height - carBounds.size.y; // 贴窗口最底边
+        float carY = height - carBounds.size.y;
         playerCar.setPosition(sf::Vector2f(carX, carY));
 
 
@@ -276,7 +261,7 @@ int main()
         int maxy = height;
         float x = 0, dx = 0;
 
-        ///////draw road////////
+        // 绘制赛道
         for (int n = startPos; n < startPos + 300; n++)
         {
             Line& l = lines[n % N];
@@ -293,18 +278,18 @@ int main()
             Color rumble = (n / 3) % 2 ? Color(255, 255, 255) : Color(0, 0, 0);
             Color road = (n / 3) % 2 ? Color(107, 107, 107) : Color(105, 105, 105);
 
-            Line& p = lines[(n - 1) % N]; // previous line
+            Line& p = lines[(n - 1) % N];
 
             drawQuad(app, grass, 0, p.Y, width, 0, l.Y, width);
             drawQuad(app, rumble, p.X, p.Y, p.W * 1.2, l.X, l.Y, l.W * 1.2);
             drawQuad(app, road, p.X, p.Y, p.W, l.X, l.Y, l.W);
         }
 
-        ////////draw objects////////
+        // 绘制路边物体
         for (int n = startPos + 300; n > startPos; n--)
             lines[n % N].drawSprite(app, t);
 
-        // ===== 新增：渲染底部小车 =====
+        // 渲染底部小车
         app.draw(playerCar);
 
         // 游戏失败绘制提示
