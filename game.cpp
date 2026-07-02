@@ -5,6 +5,11 @@
 #include <utility>
 using namespace sf;
 
+// 全局常量
+const float SAFE_LANE_LIMIT = 1.0f;    // 玩家车道安全边界
+const int OBSTACLE_SPAWN_STEP = 80;     // 每多少段生成障碍车
+const int MAX_OBSTACLE_COUNT = 8;       // 同时存在最大障碍车数量
+
 int width = 1024;
 int height = 768;
 int roadW = 2000;
@@ -100,6 +105,22 @@ int main()
     carTex.setSmooth(true);
     Sprite playerCar(carTex);
 
+    // 游戏失败状态
+    bool gameOver = false;
+    sf::Font gameFont;
+    sf::Text gameOverText(gameFont);
+    // 加载字体
+    bool fontLoad = gameFont.openFromFile("images/font.ttf");
+    gameOverText.setFont(gameFont);
+    gameOverText.setCharacterSize(60);
+    gameOverText.setFillColor(sf::Color::Red);
+    gameOverText.setString("GAME OVER!\nPress R to Restart");
+    // 文字居中
+    sf::FloatRect textBounds = gameOverText.getLocalBounds();
+    gameOverText.setPosition(sf::Vector2f(
+        (width - textBounds.size.x) / 2.f,
+        (height - textBounds.size.y) / 2.f
+    ));
 
     std::vector<Line> lines;
 
@@ -160,29 +181,49 @@ int main()
             {
                 app.close();
             }
+
+            // 失败后按R重置游戏
+           // 检测按键按下事件，游戏结束按R重置
+            if (const auto* keyEvt = eventOpt->getIf<sf::Event::KeyPressed>())
+            {
+                if (gameOver && keyEvt->code == sf::Keyboard::Key::R)
+                {
+                    gameOver = false;
+                    pos = 0;
+                    playerX = 0.f;
+                }
+            }
         }
         int speed = 0;
+        if (!gameOver)
+        {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+                playerX += 0.1f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+                playerX -= 0.1f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+                speed = 200.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+                speed = -200.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab))
+                speed *= 3.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+                H += 100.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+                H -= 100.f;
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-            playerX += 0.1f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-            playerX -= 0.1f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
-            speed = 200.f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-            speed = -200.f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab))
-            speed *= 3.f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-            H += 100.f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-            H -= 100.f;
-
-        pos += speed;
+            pos += speed;
+        }
         while (pos >= N * segL)
             pos -= N * segL;
         while (pos < 0)
             pos += N * segL;
+
+        // 车道越界失败判定
+        if (playerX < -SAFE_LANE_LIMIT || playerX > SAFE_LANE_LIMIT)
+        {
+            gameOver = true;
+        }
 
         // 新增：固定小车在窗口底部居中
         sf::FloatRect carBounds = playerCar.getLocalBounds();
@@ -239,6 +280,12 @@ int main()
 
         // ===== 新增：渲染底部小车 =====
         app.draw(playerCar);
+
+        // 游戏失败绘制提示
+        if (gameOver)
+        {
+            app.draw(gameOverText);
+        }
 
         app.display();
     }
