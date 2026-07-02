@@ -5,7 +5,7 @@
 #include <utility>
 using namespace sf;
 
-// 全局常量
+// 全局常量（插入在using namespace sf; 下方）
 const float SAFE_LANE_LIMIT = 1.0f;    // 玩家车道安全边界
 const int OBSTACLE_SPAWN_STEP = 80;     // 每多少段生成障碍车
 const int MAX_OBSTACLE_COUNT = 8;       // 同时存在最大障碍车数量
@@ -47,7 +47,33 @@ struct Line
         Y = (1 - scale * (y - camY)) * height / 2.f;
         W = scale * roadW * width / 2.f;
     }
+    //玩家小车类（封装玩家位置、出界判定）
+    class PlayerCar
+    {
 
+    };
+
+	//障碍物类（障碍小车和其他障碍物的出现和消失、玩家碰撞判定）
+    class obstacle
+    {
+
+    };
+
+	//游戏HUD类（显示速度、分数、时间等信息）
+    class GameHUD
+    {
+
+    };
+
+	//特效类（爆炸、烟雾、加速等特效的实现和管理）
+	class SpeedParticle
+	{
+	};
+
+	//游戏主类，将窗口、循环、事件处理、渲染等整合在一起
+	class GameCore
+	{
+	};
     void drawSprite(RenderWindow& app, Texture texArr[50])
     {
         if (spriteId == 0)
