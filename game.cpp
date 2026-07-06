@@ -1,4 +1,5 @@
 #include "Menu.h"
+#include "GameHUD.h"
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include <cmath>
@@ -6,15 +7,15 @@
 #include <utility>
 using namespace sf;
 
-// 全局常量（插入在using namespace sf; 下方）
-const float SAFE_LANE_LIMIT = 1.0f;    // 玩家车道安全边界
-const int OBSTACLE_SPAWN_STEP = 80;     // 每多少段生成障碍车
-const int MAX_OBSTACLE_COUNT = 8;       // 同时存在最大障碍车数量
+// 全局常量
+const float SAFE_LANE_LIMIT = 1.0f;// 玩家车道安全边界
+const int OBSTACLE_SPAWN_STEP = 80;// 每多少段生成障碍车
+const int MAX_OBSTACLE_COUNT = 8;// 同时存在最大障碍车数量
 
 int width = 1024;
 int height = 768;
 int roadW = 2000;
-int segL = 200;    // segment length
+int segL = 200;// segment length
 float camD = 0.84; // camera depth
 
 void drawQuad(RenderWindow& w, Color c, int x1, int y1, int w1, int x2, int y2, int w2)
@@ -30,8 +31,8 @@ void drawQuad(RenderWindow& w, Color c, int x1, int y1, int w1, int x2, int y2, 
 
 struct Line
 {
-    float x, y, z; // 3d center of line
-    float X, Y, W; // screen coord
+    float x, y, z;
+    float X, Y, W;
     float curve, spriteX, clip, scale;
     int spriteId;
 
@@ -64,8 +65,8 @@ struct Line
         float destW = w * W / 266.f;
         float destH = h * W / 266.f;
 
-        destX += destW * spriteX; // offsetX
-        destY += destH * (-1.f);  // offsetY
+        destX += destW * spriteX;
+        destY += destH * (-1.f);
 
         float clipH = destY + destH - clip;
         if (clipH < 0.f)
@@ -86,7 +87,7 @@ int main()
     RenderWindow app(sf::VideoMode(sf::Vector2u(width, height)), "Outrun Racing!");
     app.setFramerateLimit(60);
 
-    // ========== 菜单对接代码 ==========
+    // 启动菜单
     GameMenu menu(app);
     GameMenu::MenuState menuResult = menu.RunMenu();
     // 菜单选择退出，直接结束程序
@@ -96,56 +97,51 @@ int main()
     }
     // 选择开始游戏，往下执行赛车逻辑
 
+    // 【关键修复】进入游戏前强制清空窗口，彻底消除菜单残留画面（2026.7.6早）
+    app.clear(sf::Color(105, 205, 4));
+    app.display();
+
+    // 初始化HUD
+    GameHUD hud;
+    int gameScore = 0;
+    float gameTime = 0.f;
+    sf::Clock gameClock;
+
+    // 路边贴图
     Texture t[50];
     for (int i = 1; i <= 7; i++)
     {
-        bool loadOk = t[i].loadFromFile("images/" + std::to_string(i) + ".png");
+        t[i].loadFromFile("images/" + std::to_string(i) + ".png");
         t[i].setSmooth(true);
     }
 
+    // 远景背景
     Texture bg;
-    bool bgOk = bg.loadFromFile("images/bg.png");
+    bg.loadFromFile("images/bg.png");
     bg.setRepeated(true);
     Sprite sBackground(bg);
     sf::IntRect rect(sf::Vector2i(0.f, 0.f), sf::Vector2i(5000.f, 411.f));
     sBackground.setTextureRect(rect);
     sBackground.setPosition(sf::Vector2f(-2000.f, 0.f));
 
-    // 新增：玩家小车
+    // 玩家小车
     Texture carTex;
-    bool carLoadOk = carTex.loadFromFile("images/mycar.png");
+    carTex.loadFromFile("images/mycar.png");
     carTex.setSmooth(true);
     Sprite playerCar(carTex);
 
-    // 游戏失败状态
     bool gameOver = false;
-    sf::Font gameFont;
-    sf::Text gameOverText(gameFont);
-    // 加载字体
-    bool fontLoad = gameFont.openFromFile("images/font.ttf");
-    gameOverText.setFont(gameFont);
-    gameOverText.setCharacterSize(60);
-    gameOverText.setFillColor(sf::Color::Red);
-    gameOverText.setString("GAME OVER!\nPress R to Restart");
-    // 文字居中
-    sf::FloatRect textBounds = gameOverText.getLocalBounds();
-    gameOverText.setPosition(sf::Vector2f(
-        (width - textBounds.size.x) / 2.f,
-        (height - textBounds.size.y) / 2.f
-    ));
-
     std::vector<Line> lines;
 
+    // 生成赛道段
     for (int i = 0; i < 1600; i++)
     {
         Line line;
         line.z = i * segL;
-
         if (i > 300 && i < 700)
             line.curve = 0.5;
         if (i > 1100.f)
             line.curve = -0.7;
-
         if (i < 300 && i % 20 == 0)
         {
             line.spriteX = -2.5f;
@@ -171,10 +167,8 @@ int main()
             line.spriteX = -1.2f;
             line.spriteId = 7;
         }
-
         if (i > 750)
             line.y = sin(i / 30.0f) * 1500.f;
-
         lines.push_back(std::move(line));
     }
 
@@ -185,6 +179,7 @@ int main()
 
     while (app.isOpen())
     {
+        float dt = gameClock.restart().asSeconds();
         std::optional<sf::Event> eventOpt;
         while ((eventOpt = app.pollEvent()))
         {
@@ -193,8 +188,6 @@ int main()
             {
                 app.close();
             }
-
-            // 失败后按R重置游戏
             if (const auto* keyEvt = eventOpt->getIf<sf::Event::KeyPressed>())
             {
                 if (gameOver && keyEvt->code == sf::Keyboard::Key::R)
@@ -202,9 +195,12 @@ int main()
                     gameOver = false;
                     pos = 0;
                     playerX = 0.f;
+                    gameScore = 0;
+                    gameTime = 0.f;
                 }
             }
         }
+
         int speed = 0;
         if (!gameOver)
         {
@@ -222,26 +218,36 @@ int main()
                 H += 100.f;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
                 H -= 100.f;
-
             pos += speed;
+            gameTime += dt;
+            if (speed > 0)
+            {
+                float addScore = speed * dt * 0.5f;
+                gameScore += static_cast<int>(addScore);
+            }
         }
+
         while (pos >= N * segL)
             pos -= N * segL;
         while (pos < 0)
             pos += N * segL;
 
-        // 车道越界失败判定
+        // 越界判定
         if (playerX < -SAFE_LANE_LIMIT || playerX > SAFE_LANE_LIMIT)
         {
             gameOver = true;
         }
 
-        // 新增：固定小车在窗口底部居中
+        // 小车居中底部
         sf::FloatRect carBounds = playerCar.getLocalBounds();
         float carX = (width - carBounds.size.x) / 2.f;
         float carY = height - carBounds.size.y;
         playerCar.setPosition(sf::Vector2f(carX, carY));
 
+        // 更新HUD数据（2026.7.6早更新）
+        hud.UpdateScore(gameScore);
+        hud.UpdateTimer(gameTime);
+        hud.SetGameOver(gameOver);
 
         app.clear(Color(105, 205, 4));
         app.draw(sBackground);
@@ -260,44 +266,29 @@ int main()
 
         int maxy = height;
         float x = 0, dx = 0;
-
-        // 绘制赛道
         for (int n = startPos; n < startPos + 300; n++)
         {
             Line& l = lines[n % N];
             l.project(playerX * roadW - x, camH, startPos * segL - (n >= N ? N * segL : 0));
             x += dx;
             dx += l.curve;
-
             l.clip = maxy;
             if (l.Y >= maxy)
                 continue;
             maxy = l.Y;
-
             Color grass = (n / 3) % 2 ? Color(16, 200, 16) : Color(0, 154, 0);
             Color rumble = (n / 3) % 2 ? Color(255, 255, 255) : Color(0, 0, 0);
             Color road = (n / 3) % 2 ? Color(107, 107, 107) : Color(105, 105, 105);
-
             Line& p = lines[(n - 1) % N];
-
             drawQuad(app, grass, 0, p.Y, width, 0, l.Y, width);
             drawQuad(app, rumble, p.X, p.Y, p.W * 1.2, l.X, l.Y, l.W * 1.2);
             drawQuad(app, road, p.X, p.Y, p.W, l.X, l.Y, l.W);
         }
-
-        // 绘制路边物体
         for (int n = startPos + 300; n > startPos; n--)
             lines[n % N].drawSprite(app, t);
 
-        // 渲染底部小车
         app.draw(playerCar);
-
-        // 游戏失败绘制提示
-        if (gameOver)
-        {
-            app.draw(gameOverText);
-        }
-
+        hud.Render(app);
         app.display();
     }
     return 0;
