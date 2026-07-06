@@ -1,4 +1,4 @@
-#include "GameHUD.h"
+ #include "GameHUD.h"
 #include "Menu.h"
 #include <SFML/Graphics.hpp>
 #include <optional>
@@ -9,8 +9,8 @@
 using namespace sf;
 
 // 全局常量（插入在using namespace sf; 下方）
-const float SAFE_LANE_LIMIT = 1.0f;    // 玩家车道安全边界
-const int OBSTACLE_SPAWN_STEP = 200;     // 每多少段生成障碍车
+const float SAFE_LANE_LIMIT = 1.5f;    // 玩家车道安全边界
+const int OBSTACLE_SPAWN_STEP = 250;     // 每多少段生成障碍车
 const int MAX_OBSTACLE_COUNT = 8;       // 同时存在最大障碍车数量
 
 int width = 1024;
@@ -28,6 +28,47 @@ void drawQuad(RenderWindow& w, Color c, int x1, int y1, int w1, int x2, int y2, 
     shape.setPoint(2, Vector2f(x2 + w2, y2));
     shape.setPoint(3, Vector2f(x1 + w1, y1));
     w.draw(shape);
+}
+
+// 碰撞检测：两个精灵包围盒相交返回true
+bool CheckSpriteCollision(const sf::Sprite& sprPlayer, const sf::Sprite& sprObs)
+{
+    // 获取两个车的屏幕包围矩形
+    sf::FloatRect playerBox = sprPlayer.getGlobalBounds();
+    sf::FloatRect obsBox = sprObs.getGlobalBounds();
+
+    // 缩小碰撞盒，剔除图片空白边缘，避免误撞 SFML3.1写法
+    playerBox.position.x += 70;
+    playerBox.position.y += 70;
+    playerBox.size.x -= 100;
+    playerBox.size.y -= 100;
+
+    obsBox.position.x += 50;
+    obsBox.position.y += 50;
+    obsBox.size.x -= 80;
+    obsBox.size.y -= 80;
+
+    // 判断矩形是否重叠
+     // ==========手动实现矩形相交判断==========
+    float pLeft = playerBox.position.x;
+    float pTop = playerBox.position.y;
+    float pRight = playerBox.position.x + playerBox.size.x;
+    float pBottom = playerBox.position.y + playerBox.size.y;
+
+    float oLeft = obsBox.position.x;
+    float oTop = obsBox.position.y;
+    float oRight = obsBox.position.x + obsBox.size.x;
+    float oBottom = obsBox.position.y + obsBox.size.y;
+
+    // AABB碰撞规则：不满足任意一条无重叠，则判定碰撞
+    bool noOverlap = (pRight < oLeft) || (pLeft > oRight) || (pBottom < oTop) || (pTop > oBottom);
+    if (noOverlap) return false;
+
+    // 计算重叠宽度、重叠高度，必须重叠达到一定尺寸才算相撞
+    float overlapX = std::min(pRight, oRight) - std::max(pLeft, oLeft);
+    float overlapY = std::min(pBottom, oBottom) - std::max(pTop, oTop);
+    // 横向、纵向重叠都超过15像素才判定碰撞
+    return (overlapX > 100.f) && (overlapY > 100.f);
 }
 
 struct Line
@@ -235,6 +276,8 @@ int main()
 
     // 游戏失败状态
     bool gameOver = false;
+    
+
     std::vector<Line> lines;
 
 
@@ -453,6 +496,7 @@ int main()
             int segIndex = static_cast<int>(relZ / segL) % N;
             Line& targetSeg = lines[segIndex];
             int currentCamH = lines[startPos].y + H;
+       
 
             // 复刻路面的x/dx曲线累加逻辑：算出目标分段的总弯道偏移
             float curveX = 0.f;
@@ -471,6 +515,16 @@ int main()
             targetSeg.project(playerX * roadW - curveX, currentCamH, pos);
             obs.render(app, targetSeg, currentCamH, width, height, pos);
 
+            // 碰撞判断：游戏未结束时才检测
+            if (!gameOver)
+            {
+                bool isCrash = CheckSpriteCollision(playerCar, obs.obsSprite);
+                if (isCrash)
+                {
+                    gameOver = true; // 碰撞触发，游戏结束
+                }
+            }
+
             // 检测生命周期，超出视野标记失效
             obs.checkLifetime(pos, totalRoadLength);
         }
@@ -487,9 +541,7 @@ int main()
         app.draw(playerCar);
 		hud.Render(app);
         app.display();
-
-
-        //app.display();
+ 
     }
     return 0;
 }
