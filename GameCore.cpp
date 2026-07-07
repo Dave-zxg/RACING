@@ -109,15 +109,15 @@ void GameCore::HandleEventLoop(sf::Texture& obsCarTex)
 }
 
 // 更新逻辑，仅playerCar作为外部精灵传入
-void GameCore::UpdateGameLogic(sf::Sprite& playerCar)
+void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
 {
     if (!gameOver)
     {
-        myplayer.HandleInput(gameClock.restart().asSeconds(), myplayer.pos);
-        gameTime += gameClock.restart().asSeconds();
+        myplayer.HandleInput(dt, myplayer.pos);
+        gameTime += dt;
         if (myplayer.speed > 0)
         {
-            float addScore = myplayer.speed * gameClock.restart().asSeconds() * 0.5f;
+            float addScore = myplayer.speed * dt* 0.5f;
             gameScore += static_cast<int>(addScore);
         }
     }
@@ -148,8 +148,8 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar)
 
     hud.UpdateScore(gameScore);
     hud.UpdateTimer(gameTime);
-    hud.SetGameOver(gameOver,isNewRecord);
     hud.UpdateBest(bestScore);
+    hud.SetGameOver(gameOver, isNewRecord);
 }
 
 // 渲染：全部贴图、精灵从参数传入，内部不持有
@@ -275,20 +275,7 @@ void GameCore::Run(
         float dt = gameClock.restart().asSeconds();
         HandleEventLoop(obsCarTex);
 
-        // 检测R键重置
-        std::optional<sf::Event> tempEvt;
-        while ((tempEvt = app.pollEvent()))
-        {
-            if (auto* key = tempEvt->getIf<sf::Event::KeyPressed>())
-            {
-                if (gameOver && key->code == sf::Keyboard::Key::R)
-                {
-                    ResetFullGame(obsCarTex);
-                }
-            }
-        }
-
-        UpdateGameLogic(playerCar);
+        UpdateGameLogic(playerCar,dt);
         RenderScene(t, bg, sBackground, playerCar, obsCarTex);
     }
 }
