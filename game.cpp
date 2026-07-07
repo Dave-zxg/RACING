@@ -1,4 +1,4 @@
- #include "GameHUD.h"
+#include "GameHUD.h"
 #include "Menu.h"
 #include <SFML/Graphics.hpp>
 #include <optional>
@@ -140,7 +140,7 @@ public:
     sf::Sprite obsSprite;
 
     // 构造函数：传入障碍物贴图
-    obstacle(const sf::Texture& tex):obsSprite(tex)
+    obstacle(const sf::Texture& tex) :obsSprite(tex)
     {
         zPos = 0.f;
         laneOffset = 0.f;
@@ -160,18 +160,18 @@ public:
     {
         if (seg.scale <= 0.f)
         {
-			return;
+            return;
         }
 
         sf::FloatRect texBounds = obsSprite.getLocalBounds();
         float w = texBounds.size.x;
         float h = texBounds.size.y;
         // 和路边道具缩放公式完全一致，不会变形变窄
-        float destW =std::abs( w * seg.W / 266.f);
-        float destH =std::abs( h * seg.W / 266.f);
+        float destW = std::abs(w * seg.W / 266.f);
+        float destH = std::abs(h * seg.W / 266.f);
         // 横向偏移算法照搬drawSprite
-        float screenX = seg.X + seg.scale * laneOffset * winW / 2.f-destW/2.f;
-        float screenY = seg.Y +4.f;
+        float screenX = seg.X + seg.scale * laneOffset * winW / 2.f - destW / 2.f;
+        float screenY = seg.Y + 4.f;
 
 
         // 小型裁剪：如果完全在屏幕外则不绘制
@@ -183,9 +183,9 @@ public:
 
         // 简易裁切，和道路渲染统一
          // 简易裁切，和树木对齐
-       
 
-        
+
+
         if (screenY < winH)
         {
             app.draw(obsSprite);
@@ -199,7 +199,7 @@ public:
         // 障碍落后玩家完整一圈才标记失效，中途永久存在路面
         if (relativeZ < -totalRoadLength)
         {
-            active= false;
+            active = false;
         }
     }
 };
@@ -239,9 +239,10 @@ int main()
     // 初始化HUD
     GameHUD hud;
     int gameScore = 0;
+    int bestScore = 0; // 新增：历史最高分
     float gameTime = 0.f;
+    bool isNewRecord = false; // 新增：破纪录标记
     sf::Clock gameClock;
-
 
 
     //路边贴图
@@ -276,12 +277,12 @@ int main()
 
     // 游戏失败状态
     bool gameOver = false;
-    
+
 
     std::vector<Line> lines;
 
 
-	//生成赛道线段
+    //生成赛道线段
     for (int i = 0; i < 1600; i++)
     {
         Line line;
@@ -366,6 +367,7 @@ int main()
                     playerX = 0.f;
                     gameScore = 0;
                     gameTime = 0.f;
+                    isNewRecord = false; // 新增重置破纪录标记
                     obstacleList.clear();
                     // 一次性在赛道固定坐标生成障碍，永久附着路面
                     for (int i = 200; i < N; i += OBSTACLE_SPAWN_STEP)
@@ -415,9 +417,20 @@ int main()
             pos += N * segL;
 
         // 车道越界失败判定
-        if (playerX < -SAFE_LANE_LIMIT || playerX > SAFE_LANE_LIMIT)
+        // 车道越界失败判定
+        if ((playerX < -SAFE_LANE_LIMIT || playerX > SAFE_LANE_LIMIT) && !gameOver)
         {
             gameOver = true;
+            // 对比最高分，判断是否破纪录
+            if (gameScore > bestScore)
+            {
+                bestScore = gameScore;
+                isNewRecord = true;
+            }
+            else
+            {
+                isNewRecord = false;
+            }
         }
 
 
@@ -428,9 +441,11 @@ int main()
         playerCar.setPosition(sf::Vector2f(carX, carY));
 
         // 更新HUD数据（2026.7.6早更新）
+               // 更新HUD数据（新增最高分、破纪录标记）
         hud.UpdateScore(gameScore);
+        hud.UpdateBest(bestScore); // 刷新最高分文字
         hud.UpdateTimer(gameTime);
-        hud.SetGameOver(gameOver);
+        hud.SetGameOver(gameOver, isNewRecord); // 传入破纪录标记
 
         app.clear(Color(105, 205, 4));
         app.draw(sBackground);
@@ -496,12 +511,12 @@ int main()
             int segIndex = static_cast<int>(relZ / segL) % N;
             Line& targetSeg = lines[segIndex];
             int currentCamH = lines[startPos].y + H;
-       
+
 
             // 复刻路面的x/dx曲线累加逻辑：算出目标分段的总弯道偏移
             float curveX = 0.f;
             float curveDx = 0.f;
-   
+
             // 从当前视野起点，遍历到障碍所在分段，累加所有curve
             for (int n = startPos; n <= segIndex; n++)
             {
@@ -519,9 +534,19 @@ int main()
             if (!gameOver)
             {
                 bool isCrash = CheckSpriteCollision(playerCar, obs.obsSprite);
-                if (isCrash)
+                if (isCrash && !gameOver)
                 {
                     gameOver = true; // 碰撞触发，游戏结束
+                    // 对比最高分，判断是否破纪录
+                    if (gameScore > bestScore)
+                    {
+                        bestScore = gameScore;
+                        isNewRecord = true;
+                    }
+                    else
+                    {
+                        isNewRecord = false;
+                    }
                 }
             }
 
@@ -539,9 +564,9 @@ int main()
 
         // ===== 新增：渲染底部小车 =====
         app.draw(playerCar);
-		hud.Render(app);
+        hud.Render(app);
         app.display();
- 
+
     }
     return 0;
 }
