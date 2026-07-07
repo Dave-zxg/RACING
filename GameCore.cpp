@@ -166,6 +166,8 @@ void GameCore::RenderScene(
     int startPos = myplayer.pos / segL;
     int camH = lines[startPos].y + myplayer.H;
 
+
+
     if (myplayer.speed > 0)
     {
         float offsetX = -lines[startPos].curve * 2.f;
@@ -274,6 +276,8 @@ void GameCore::Run(
     {
         float dt = gameClock.restart().asSeconds();
         HandleEventLoop(obsCarTex);
+
+       
 
         UpdateGameLogic(playerCar,dt);
         RenderScene(t, bg, sBackground, playerCar, obsCarTex);

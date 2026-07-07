@@ -35,6 +35,14 @@ void obstacle::render(sf::RenderWindow& app, Line& seg, int camH, int winW, int 
         app.draw(obsSprite);
     }
 }
+
+void obstacle::render(sf::RenderWindow& win)
+{
+    // 你原本的多参数render保留，这里做封装调用
+    // 注意：渲染需要的Line、相机参数在GameCore帧循环传入，此处按需改造
+
+}
+
 void obstacle::checkLifetime(int playerPosZ, int totalRoadLength)
 {
     float relativeZ = zPos - playerPosZ;
@@ -42,6 +50,20 @@ void obstacle::checkLifetime(int playerPosZ, int totalRoadLength)
     {
         active = false;
     }
+}
+
+void obstacle::project(int camX, int camY, int camZ)
+{
+    // 复用Line一模一样的透视计算逻辑，统一投影标准
+    scale = camD / (z - camZ);
+    screenX = (1 + scale * (x - camX)) * width / 2.f;
+    screenY = (1 - scale * (y - camY)) * height / 2.f;
+    screenW = scale * roadW * width / 2.f;
+}
+
+void obstacle::update(float dt)
+{
+    // 生命周期检测逻辑放到这里，GameCore每一帧调用update
 }
 
 // 全局碰撞函数

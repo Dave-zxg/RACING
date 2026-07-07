@@ -9,6 +9,7 @@
 #include "Obstacle.h"
 #include "PlayerCar.h"
 #include "GameHUD.h"
+#include "GameObject.h"
 using namespace sf;
 // 全局碰撞函数声明
 bool CheckSpriteCollision(const sf::Sprite& sprPlayer, const sf::Sprite& sprObs);
@@ -28,8 +29,6 @@ public:
         sf::Texture& obsCarTex
     );
     sf::RenderWindow& app;
-
-    // 仅赛道、实体、游戏状态，无任何贴图
     std::vector<Line> lines;
     int N;
     std::vector<obstacle> obstacleList;
