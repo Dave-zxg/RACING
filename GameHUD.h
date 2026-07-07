@@ -4,8 +4,7 @@
 #include <string>
 #include <memory>
 
-extern int width;
-extern int height;
+#include "Config.h"
 
 class GameHUD
 {
