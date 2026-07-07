@@ -48,7 +48,7 @@ public:
     void SpawnObstacles(sf::Texture& obsCarTex);
     void ResetFullGame(sf::Texture& obsCarTex);
     void HandleEventLoop(sf::Texture& obsCarTex);
-    void UpdateGameLogic(sf::Sprite& playerCar);
+    void UpdateGameLogic(sf::Sprite& playerCar,float dt);
     void RenderScene(
         sf::Texture t[50],
         sf::Texture& bg,
