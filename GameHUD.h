@@ -12,9 +12,9 @@ class GameHUD
 public:
     GameHUD();
     void UpdateScore(int score);
+    void UpdateBest(int bestScore); // 新增
     void UpdateTimer(float second);
-    void SetGameOver(bool isOver);
-    void SetTimerColor(sf::Color color);
+    void SetGameOver(bool isOver, bool newRecord); // 修改参数
     void Render(sf::RenderWindow& win);
 
 private:
@@ -22,6 +22,7 @@ private:
     bool m_fontValid;
 
     std::unique_ptr<sf::Text> m_scoreText;
+    std::unique_ptr<sf::Text> m_bestText; // 新增最高分文字
     std::unique_ptr<sf::Text> m_timerText;
     std::unique_ptr<sf::Text> m_gameOverText;
 };
