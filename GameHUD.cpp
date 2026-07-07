@@ -9,7 +9,7 @@ GameHUD::GameHUD()
     m_timerText(nullptr),
     m_gameOverText(nullptr)
 {
-    // 字体加载兜底
+    // 瀛椾綋鍔犺浇鍏滃簳
     if (m_hudFont.openFromFile("images/font.ttf"))
         m_fontValid = true;
     else if (m_hudFont.openFromFile("C:/Windows/Fonts/msyh.ttc"))
@@ -19,21 +19,28 @@ GameHUD::GameHUD()
 
     if (!m_fontValid) return;
 
-    // 分数文本
+    // 鍒嗘暟鏂囨湰
     m_scoreText = std::make_unique<sf::Text>(m_hudFont);
     m_scoreText->setCharacterSize(28);
     m_scoreText->setFillColor(sf::Color::Black);
     m_scoreText->setPosition(sf::Vector2f{ 10.f, 10.f });
     UpdateScore(0);
 
-    // 计时文本（黑色）
+    // 鏈�楂樼邯褰昒I锛堝垎鏁颁笅鏂癸級鏂板
+    m_bestText = std::make_unique<sf::Text>(m_hudFont);
+    m_bestText->setCharacterSize(24);
+    m_bestText->setFillColor(sf::Color::Black);
+    m_bestText->setPosition(sf::Vector2f{ 10.f, 40.f });
+    UpdateBest(0);
+
+    // 璁℃椂鏂囨湰锛堥粦鑹诧級
     m_timerText = std::make_unique<sf::Text>(m_hudFont);
     m_timerText->setCharacterSize(28);
     m_timerText->setFillColor(sf::Color::Black);
     m_timerText->setPosition(sf::Vector2f{ static_cast<float>(width) - 160.f, 10.f });
     UpdateTimer(0.f);
 
-    // GameOver文字
+    // GameOver鏂囧瓧
     m_gameOverText = std::make_unique<sf::Text>(m_hudFont);
     m_gameOverText->setCharacterSize(60);
     m_gameOverText->setFillColor(sf::Color::Red);
@@ -51,6 +58,15 @@ void GameHUD::UpdateScore(int score)
     m_scoreText->setString(ss.str());
 }
 
+//鏂板
+void GameHUD::UpdateBest(int bestScore)
+{
+    if (!m_fontValid) return;
+    std::stringstream ss;
+    ss << "Best: " << bestScore;
+    m_bestText->setString(ss.str());
+}
+
 void GameHUD::UpdateTimer(float second)
 {
     if (!m_fontValid) return;
@@ -61,25 +77,35 @@ void GameHUD::UpdateTimer(float second)
     m_timerText->setString(ss.str());
 }
 
-void GameHUD::SetTimerColor(sf::Color color)
-{
-    if (!m_fontValid) return;
-    m_timerText->setFillColor(color);
-}
+//void GameHUD::SetTimerColor(sf::Color color)
+//{
+//    if (!m_fontValid) return;
+//    m_timerText->setFillColor(color);
+//}
 
-void GameHUD::SetGameOver(bool isOver)
+//璋冩暣
+void GameHUD::SetGameOver(bool isOver, bool newRecord)
 {
     if (!m_fontValid) return;
     if (isOver)
+    {
+        if (newRecord)
+            m_gameOverText->setString("NEW RECORD!\nGAME OVER!\nPress R to Restart");
+        else
+            m_gameOverText->setString("GAME OVER!\nPress R to Restart");
         m_gameOverText->setFillColor(sf::Color::Red);
+    }
     else
+    {
         m_gameOverText->setFillColor(sf::Color::Transparent);
+    }
 }
 
 void GameHUD::Render(sf::RenderWindow& win)
 {
     if (!m_fontValid) return;
     win.draw(*m_scoreText);
+    win.draw(*m_bestText); // 鏂板
     win.draw(*m_timerText);
     win.draw(*m_gameOverText);
 }
