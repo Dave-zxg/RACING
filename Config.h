@@ -18,4 +18,13 @@ extern const float SAFE_LANE_LIMIT;
 extern const int OBSTACLE_SPAWN_STEP;
 extern const int MAX_OBSTACLE_COUNT;
 
+enum ItemType
+{
+    ITEM_NONE,
+    ITEM_NITRO,    // Tab加速道具
+    ITEM_FLY       // W飞行道具
+};
+extern const float ITEM_DURATION;
+extern const int ITEM_SPAWN_INTERVAL;
+
 #endif

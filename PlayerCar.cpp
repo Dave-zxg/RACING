@@ -4,7 +4,7 @@
 using namespace sf;
 void PlayerCar::update(float dt)
 {
-    HandleInput(dt, this->pos);
+    
 }
 void PlayerCar::project(int camX, int camY, int camZ)
 {

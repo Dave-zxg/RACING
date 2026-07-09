@@ -39,6 +39,18 @@ GameHUD::GameHUD()
     m_timerText->setPosition(sf::Vector2f{ static_cast<float>(width) - 160.f, 10.f });
     UpdateTimer(0.f);
 
+    // 氮气道具文字
+    m_nitroText = std::make_unique<sf::Text>(m_hudFont);
+    m_nitroText->setCharacterSize(24);
+    m_nitroText->setFillColor(sf::Color::Blue);
+    m_nitroText->setPosition(sf::Vector2f{ 10.f, 70.f });
+
+    // 飞行道具文字
+    m_flyText = std::make_unique<sf::Text>(m_hudFont);
+    m_flyText->setCharacterSize(24);
+    m_flyText->setFillColor(sf::Color(200, 0, 200));
+    m_flyText->setPosition(sf::Vector2f{ 10.f, 100.f });
+
     // GameOver文字
     m_gameOverText = std::make_unique<sf::Text>(m_hudFont);
     m_gameOverText->setCharacterSize(60);
@@ -76,6 +88,37 @@ void GameHUD::UpdateTimer(float second)
     m_timerText->setString(ss.str());
 }
 
+void GameHUD::UpdateItemStatus(float nitro, float fly)
+{
+    if (!m_fontValid) return;
+    std::stringstream ss;
+    // 更新氮气显示
+    ss.str("");
+    ss.clear();
+    if (nitro > 0.f)
+    {
+        ss << "Nitro: " << std::fixed << std::setprecision(1) << nitro;
+    }
+    else
+    {
+        ss << "Nitro: Unavailable";
+    }
+    m_nitroText->setString(ss.str());
+
+    // 更新飞行显示
+    ss.str("");
+    ss.clear();
+    if (fly > 0.f)
+    {
+        ss << "Fly: " << std::fixed << std::setprecision(1) << fly;
+    }
+    else
+    {
+        ss << "Fly: Unavailable";
+    }
+    m_flyText->setString(ss.str());
+}
+
 //void GameHUD::SetTimerColor(sf::Color color)
 //{
 //    if (!m_fontValid) return;
@@ -107,4 +150,8 @@ void GameHUD::Render(sf::RenderWindow& win)
     win.draw(*m_bestText); // 新增
     win.draw(*m_timerText);
     win.draw(*m_gameOverText);
+
+    // 新增绘制道具状态文字
+    win.draw(*m_nitroText);
+    win.draw(*m_flyText);
 }

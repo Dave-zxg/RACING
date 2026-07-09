@@ -14,6 +14,8 @@ struct Line
     float curve, spriteX, clip, scale;
     int spriteId;
 
+    ItemType spawnItem; // 道具系统新增
+
     Line();
     // 透视投影计算
     void project(int camX, int camY, int camZ);

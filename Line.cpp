@@ -6,6 +6,7 @@ Line::Line()
 {
     spriteX = curve = x = y = z = 0.f;
     spriteId = 0;
+    spawnItem = ITEM_NONE; // 默认无道具标记
 }
 
 // Line::project 原样复制，无任何修改

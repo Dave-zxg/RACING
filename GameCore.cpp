@@ -2,9 +2,10 @@
 #include <cstdio>
 #include <algorithm>
 #include <SFML/Graphics.hpp>
+#include "Item.h"
 using namespace sf;
 GameCore::GameCore(sf::RenderWindow& win)
-	: app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false)
+	: app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false),nitroTimer(0.f), flyTimer(0.f) // 新增
 {
     // 玩家初始值不变
     myplayer.playerX = 0.f;
@@ -51,6 +52,17 @@ void GameCore::GenerateTrack()
         }
         if (i > 750)
             line.y = sin(i / 30.0f) * 1500.f;
+
+        line.spawnItem = ITEM_NONE;
+        if (i % ITEM_SPAWN_INTERVAL == 0 && i > 50)
+        {
+            if (rand() % 2 == 0)
+                line.spawnItem = ITEM_NITRO;
+            else
+                line.spawnItem = ITEM_FLY;
+            line.spriteX = 0.f;
+            line.spriteId = 6;
+        }
         lines.push_back(std::move(line));
     }
     N = lines.size();
@@ -73,20 +85,94 @@ void GameCore::SpawnObstacles(sf::Texture& obsCarTex)
     }
 }
 
+void GameCore::SpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex)
+{
+    itemList.clear();
+    for (int i = 0; i < N; i++)
+    {
+        Line& line = lines[i];
+        if (line.spawnItem == ITEM_NONE)
+            continue;
+
+        // 实例化Item，传入两张道具贴图
+        Item newItem(nitroTex, flyTex);
+        float zPos = i * segL;
+        newItem.setTrackPos(zPos, 0.f, line.spawnItem);
+        itemList.push_back(newItem);
+    }
+}
+
+void GameCore::UpdateItemTimer(float dt)
+{
+    if (nitroTimer > 0.f) nitroTimer -= dt;
+    if (flyTimer > 0.f) flyTimer -= dt;
+    if (nitroTimer < 0.f) nitroTimer = 0.f;
+    if (flyTimer < 0.f) flyTimer = 0.f;
+}
+
+//void GameCore::CheckAllItemPickup(sf::Sprite& playerCar)
+//{
+//    if (gameOver) return;
+//    int totalRoad = N * segL;
+//    for (auto& item : itemList)
+//    {
+//        if (!item.active) continue;
+//
+//        float relZ = item.zPos - myplayer.pos;
+//        while (relZ < 0) relZ += totalRoad;
+//        while (relZ > totalRoad) relZ -= totalRoad;
+//
+//        if (relZ > 600) continue;
+//
+//        int segIdx = static_cast<int>(relZ / segL) % N;
+//        Line& seg = lines[segIdx];
+//        int playerSeg = myplayer.pos / segL;
+//        int camH = lines[playerSeg].y + myplayer.H;
+//        float curveX = 0.f, curveDx = 0.f;
+//        for (int n = playerSeg; n <= segIdx; n++)
+//        {
+//            int idx = n % N;
+//            curveDx += lines[idx].curve;
+//            curveX += curveDx;
+//        }
+//        seg.project(myplayer.playerX * roadW - curveX, camH, myplayer.pos);
+//        item.render(app, seg, camH, width, height, myplayer.pos);
+//
+//        if (CheckItemPickCollision(playerCar, item.itemSprite))
+//        {
+//            if (item.type == ITEM_NITRO)
+//                nitroTimer = ITEM_DURATION;
+//            if (item.type == ITEM_FLY)
+//                flyTimer = ITEM_DURATION;
+//            item.active = false;
+//        }
+//    }
+//    for (auto it = itemList.begin(); it != itemList.end();)
+//    {
+//        if (!it->active) it = itemList.erase(it);
+//        else ++it;
+//    }
+//}
+
+
 // R键重置，贴图参数外部传入
-void GameCore::ResetFullGame(sf::Texture& obsCarTex)
+void GameCore::ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex)
 {
     gameOver = false;
     gameScore = 0;
 	isNewRecord = false;
     gameTime = 0.f;
+    nitroTimer = 0.f;
+    flyTimer = 0.f;
     myplayer.ResetPlayer(myplayer.pos);
     obstacleList.clear();
+    itemList.clear();
     SpawnObstacles(obsCarTex);
+    SpawnItems(nitroTex, flyTex);
 }
 
 // 事件循环，无贴图
-void GameCore::HandleEventLoop(sf::Texture& obsCarTex)
+void GameCore::HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex)
 {
     std::optional<sf::Event> eventOpt;
     while ((eventOpt = app.pollEvent()))
@@ -101,7 +187,7 @@ void GameCore::HandleEventLoop(sf::Texture& obsCarTex)
             if (gameOver && keyEvt->code == sf::Keyboard::Key::R)
             {
                 
-                ResetFullGame(obsCarTex);
+                ResetFullGame(obsCarTex,nitroTex, flyTex);
                 
             }
         }
@@ -111,9 +197,10 @@ void GameCore::HandleEventLoop(sf::Texture& obsCarTex)
 // 更新逻辑，仅playerCar作为外部精灵传入
 void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
 {
+    UpdateItemTimer(dt);
     if (!gameOver)
     {
-        myplayer.HandleInput(dt, myplayer.pos);
+        myplayer.HandleInput(dt, myplayer.pos, nitroTimer, flyTimer);
         gameTime += dt;
         if (myplayer.speed > 0)
         {
@@ -150,6 +237,8 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
     hud.UpdateTimer(gameTime);
     hud.UpdateBest(bestScore);
     hud.SetGameOver(gameOver, isNewRecord);
+    // 新增：刷新HUD道具显示
+    hud.UpdateItemStatus(nitroTimer, flyTimer);
 }
 
 // 渲染：全部贴图、精灵从参数传入，内部不持有
@@ -158,7 +247,8 @@ void GameCore::RenderScene(
     sf::Texture& bg,
     sf::Sprite& sBackground,
     sf::Sprite& playerCar,
-    sf::Texture& obsCarTex
+    sf::Texture& obsCarTex, sf::Texture& nitroTex,
+    sf::Texture& flyTex
 )
 {
     app.clear(Color(105, 205, 4));
@@ -253,6 +343,46 @@ void GameCore::RenderScene(
         if (!iter->active) iter = obstacleList.erase(iter);
         else ++iter;
     }
+    int playerSeg = myplayer.pos / segL;
+    
+
+    for (auto& item : itemList)
+    {
+        if (!item.active) continue;
+        float relZ = item.zPos - myplayer.pos;
+        while (relZ < 0) relZ += totalRoadLength;
+        while (relZ > totalRoadLength) relZ -= totalRoadLength;
+
+        int segIndex = static_cast<int>(relZ / segL) % N;
+        Line& targetSeg = lines[segIndex];
+        float curveX = 0.f, curveDx = 0.f;
+        for (int n = playerSeg; n <= segIndex; n++)
+        {
+            int idx = n % N;
+            curveDx+= lines[idx].curve;
+            curveX+= curveDx;
+        }
+        targetSeg.project(myplayer.playerX * roadW - curveX, camH, myplayer.pos);
+        item.render(app, targetSeg, camH, width, height, myplayer.pos);
+        item.checkLifetime(myplayer.pos, totalRoadLength);
+        if (!gameOver && CheckItemPickCollision(playerCar, item.itemSprite))
+        {
+            if (item.type == ITEM_NITRO) nitroTimer = ITEM_DURATION;
+            if (item.type == ITEM_FLY) flyTimer = ITEM_DURATION;
+            item.active = false;
+        }
+    }
+
+
+
+
+    // 清理跑出视野的道具
+    for (auto iter = itemList.begin(); iter != itemList.end();)
+    {
+        if (!iter->active) iter = itemList.erase(iter);
+        else ++iter;
+    }
+
 
     app.draw(playerCar);
     hud.Render(app);
@@ -266,20 +396,23 @@ void GameCore::Run(
     sf::Sprite& sBackground,
     sf::Texture& carTex,
     sf::Sprite& playerCar,
-    sf::Texture& obsCarTex
+    sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex
 )
 {
     // 首次生成初始障碍（obsCarTex外部）
     SpawnObstacles(obsCarTex);
-
+    SpawnItems(nitroTex, flyTex);
     while (app.isOpen())
     {
         float dt = gameClock.restart().asSeconds();
-        HandleEventLoop(obsCarTex);
+        HandleEventLoop(obsCarTex,  nitroTex, flyTex);
 
        
 
         UpdateGameLogic(playerCar,dt);
-        RenderScene(t, bg, sBackground, playerCar, obsCarTex);
+
+        //CheckAllItemPickup(playerCar);
+        RenderScene(t, bg, sBackground, playerCar, obsCarTex, nitroTex,
+            flyTex);
     }
 }

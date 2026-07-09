@@ -13,6 +13,7 @@ public:
     void UpdateScore(int score);
     void UpdateBest(int bestScore); // 新增
     void UpdateTimer(float second);
+    void UpdateItemStatus(float nitro, float fly);
     void SetGameOver(bool isOver, bool newRecord); // 修改参数
     void Render(sf::RenderWindow& win);
 
@@ -24,5 +25,7 @@ private:
     std::unique_ptr<sf::Text> m_bestText; // 新增最高分文字
     std::unique_ptr<sf::Text> m_timerText;
     std::unique_ptr<sf::Text> m_gameOverText;
+    std::unique_ptr<sf::Text> m_nitroText;
+    std::unique_ptr<sf::Text> m_flyText;
 };
 #endif

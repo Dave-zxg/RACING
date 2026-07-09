@@ -13,7 +13,7 @@ public:
     int pos;
     int H;
     // 处理所有玩家按键输入，传入dt，修改内部speed/playerX/H
-    void HandleInput(float dt, int& pos)
+    void HandleInput(float dt, int& pos, float nitroTime, float flyTime)
     {
         speed = 0;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
@@ -24,9 +24,9 @@ public:
             speed = 200.f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
             speed = -200.f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab))
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab)&& nitroTime > 0.f)
             speed *= 3.f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) && flyTime > 0.f)
             H += 100.f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
             H -= 100.f;

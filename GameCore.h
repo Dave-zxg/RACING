@@ -10,6 +10,7 @@
 #include "PlayerCar.h"
 #include "GameHUD.h"
 #include "GameObject.h"
+#include "Item.h"
 using namespace sf;
 // 全局碰撞函数声明
 bool CheckSpriteCollision(const sf::Sprite& sprPlayer, const sf::Sprite& sprObs);
@@ -26,14 +27,22 @@ public:
         sf::Sprite& sBackground,
         sf::Texture& carTex,
         sf::Sprite& playerCar,
-        sf::Texture& obsCarTex
+        sf::Texture& obsCarTex,
+        sf::Texture& nitroTex,
+        sf::Texture&flyTex
     );
     sf::RenderWindow& app;
     std::vector<Line> lines;
+
     int N;
     std::vector<obstacle> obstacleList;
+    // 新增道具列表，和障碍车格式对齐
+    std::vector<Item> itemList;
     PlayerCar myplayer;
     GameHUD hud;
+
+    float nitroTimer;           // 氮气剩余时间
+    float flyTimer;             // 飞行剩余时间
 
     int gameScore;
 	int bestScore;
@@ -45,15 +54,20 @@ public:
     // 内部逻辑函数，贴图全部作为参数传入
     void GenerateTrack();
     void SpawnObstacles(sf::Texture& obsCarTex);
-    void ResetFullGame(sf::Texture& obsCarTex);
-    void HandleEventLoop(sf::Texture& obsCarTex);
+    // 生成道具，传入两张道具纹理
+    void SpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex);
+    // 每帧更新道具倒计时
+    void UpdateItemTimer(float dt);
+    void ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex);
+    void HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex);
     void UpdateGameLogic(sf::Sprite& playerCar,float dt);
     void RenderScene(
         sf::Texture t[50],
         sf::Texture& bg,
         sf::Sprite& sBackground,
         sf::Sprite& playerCar,
-        sf::Texture& obsCarTex
+        sf::Texture& obsCarTex,sf::Texture& nitroTex,
+        sf::Texture& flyTex
     );
 };
 #endif

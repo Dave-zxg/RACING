@@ -1,4 +1,4 @@
-#include "GameHUD.h"
+#include "GameHUD.h"    
 #include "Menu.h"
 #include <SFML/Graphics.hpp>
 #include <optional>
@@ -67,10 +67,19 @@ int main()
     bool obsTexLoad = obsCarTex.loadFromFile("images/othercar.png");
     obsCarTex.setSmooth(true);
 
+    // 加载氮气道具贴图
+    sf::Texture nitroItemTex;
+    bool nitroLoadOk = nitroItemTex.loadFromFile("images/nitro.png");
+    nitroItemTex.setSmooth(true);
+
+    // 加载飞行道具贴图
+    sf::Texture flyItemTex;
+    bool flyLoadOk = flyItemTex.loadFromFile("images/fly.png");
+    flyItemTex.setSmooth(true);
 
         // 实例游戏核心，窗口传入，所有贴图引用传入内部循环
     GameCore game(app);
-    game.Run(t, bg, sBackground, carTex, playerCar, obsCarTex);
+    game.Run(t, bg, sBackground, carTex, playerCar, obsCarTex, nitroItemTex, flyItemTex);
 
     return 0;
 }
