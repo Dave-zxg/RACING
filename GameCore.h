@@ -34,6 +34,7 @@ public:
     sf::RenderWindow& app;
     std::vector<Line> lines;
 
+
     int N;
     std::vector<obstacle> obstacleList;
     // 新增道具列表，和障碍车格式对齐
@@ -55,7 +56,7 @@ public:
     void GenerateTrack();
     void SpawnObstacles(sf::Texture& obsCarTex);
     // 生成道具，传入两张道具纹理
-    void SpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex);
+    void RefreshSpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex,float playerPos);
     // 每帧更新道具倒计时
     void UpdateItemTimer(float dt);
     void ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex);
