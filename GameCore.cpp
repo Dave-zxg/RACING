@@ -198,7 +198,7 @@ void GameCore::HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf
 void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
 {
 
-	printf("Degbug:nitroTimer: %.2f, flyTimer: %.2f, hasNitroPending: %d, hasFlyPending: %d\n", nitroTimer, flyTimer, hasNitroPending, hasFlyPending);
+	
     UpdateItemTimer(dt);
     if (!gameOver)
     {
@@ -375,12 +375,12 @@ void GameCore::RenderScene(
             if (item.type == ITEM_NITRO)
             {
                 hasNitroPending = true;
-                printf("Debug: Nitro picked, pending set = %d\n", hasNitroPending);
+               
             }
             if (item.type == ITEM_FLY)
             {
                 hasFlyPending = true;
-                printf("Debug: Fly picked, pending set = %d\n", hasFlyPending);
+                
             }
 
             item.active = false;

@@ -32,7 +32,6 @@ public:
             {
                 nitroTime = ITEM_DURATION; // 启动计时器
                 nitroPending = false;
-                printf("Debug: Nitro activated, timer set to %.1f\n", nitroTime);
             }
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
@@ -41,7 +40,6 @@ public:
             {
                 flyTime = ITEM_DURATION; // 启动计时器
                 flyPending = false;
-                printf("Debug: Fly activated, timer set to %.1f\n", flyTime);
             }
         }
 
