@@ -45,6 +45,10 @@ public:
     float nitroTimer;           // 氮气剩余时间
     float flyTimer;             // 飞行剩余时间
 
+    // 新增道具pending标志：表示已拾取但尚未激活计时
+    bool hasNitroPending;
+    bool hasFlyPending;
+
     int gameScore;
 	int bestScore;
     float gameTime;

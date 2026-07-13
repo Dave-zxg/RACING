@@ -13,7 +13,7 @@ public:
     void UpdateScore(int score);
     void UpdateBest(int bestScore); // 新增
     void UpdateTimer(float second);
-    void UpdateItemStatus(float nitro, float fly);
+    void UpdateItemStatus(float nitro, float fly, bool nitroPending, bool flyPending);
     void SetGameOver(bool isOver, bool newRecord); // 修改参数
     void Render(sf::RenderWindow& win);
 

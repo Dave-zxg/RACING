@@ -88,7 +88,7 @@ void GameHUD::UpdateTimer(float second)
     m_timerText->setString(ss.str());
 }
 
-void GameHUD::UpdateItemStatus(float nitro, float fly)
+void GameHUD::UpdateItemStatus(float nitro, float fly, bool nitroPending, bool flyPending)
 {
     if (!m_fontValid) return;
     std::stringstream ss;

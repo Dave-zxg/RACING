@@ -13,7 +13,7 @@ public:
     int pos;
     int H;
     // 处理所有玩家按键输入，传入dt，修改内部speed/playerX/H
-    void HandleInput(float dt, int& pos, float nitroTime, float flyTime)
+    void HandleInput(float dt, int& pos, float& nitroTime, float& flyTime, bool& nitroPending, bool& flyPending)
     {
         speed = 0;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
@@ -24,6 +24,27 @@ public:
             speed = 200.f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
             speed = -200.f;
+
+        // 先处理按键触发 pending -> 启动计时器的逻辑（如果有pending）
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab))
+        {
+            if (nitroTime <= 0.f && nitroPending)
+            {
+                nitroTime = ITEM_DURATION; // 启动计时器
+                nitroPending = false;
+                printf("Debug: Nitro activated, timer set to %.1f\n", nitroTime);
+            }
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+        {
+            if (flyTime <= 0.f && flyPending)
+            {
+                flyTime = ITEM_DURATION; // 启动计时器
+                flyPending = false;
+                printf("Debug: Fly activated, timer set to %.1f\n", flyTime);
+            }
+        }
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab)&& nitroTime > 0.f)
             speed *= 3.f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) && flyTime > 0.f)

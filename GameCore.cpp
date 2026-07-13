@@ -5,7 +5,7 @@
 #include "Item.h"
 using namespace sf;
 GameCore::GameCore(sf::RenderWindow& win)
-	: app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false),nitroTimer(0.f), flyTimer(0.f) // 新增
+	: app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false),nitroTimer(0.f), flyTimer(0.f), hasNitroPending(false), hasFlyPending(false)// 新增
 {
     // 玩家初始值不变
     myplayer.playerX = 0.f;
@@ -162,6 +162,8 @@ void GameCore::ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::
     gameTime = 0.f;
     nitroTimer = 0.f;
     flyTimer = 0.f;
+    hasNitroPending = false; // 清除pending
+    hasFlyPending = false;
     myplayer.ResetPlayer(myplayer.pos);
     obstacleList.clear();
     itemList.clear();
@@ -195,10 +197,12 @@ void GameCore::HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf
 // 更新逻辑，仅playerCar作为外部精灵传入
 void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
 {
+
+	printf("Degbug:nitroTimer: %.2f, flyTimer: %.2f, hasNitroPending: %d, hasFlyPending: %d\n", nitroTimer, flyTimer, hasNitroPending, hasFlyPending);
     UpdateItemTimer(dt);
     if (!gameOver)
     {
-        myplayer.HandleInput(dt, myplayer.pos, nitroTimer, flyTimer);
+        myplayer.HandleInput(dt, myplayer.pos, nitroTimer, flyTimer, hasNitroPending, hasFlyPending);
         gameTime += dt;
         if (myplayer.speed > 0)
         {
@@ -236,7 +240,7 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
     hud.UpdateBest(bestScore);
     hud.SetGameOver(gameOver, isNewRecord);
     // 新增：刷新HUD道具显示
-    hud.UpdateItemStatus(nitroTimer, flyTimer);
+    hud.UpdateItemStatus(nitroTimer, flyTimer, hasNitroPending, hasFlyPending);
 }
 
 // 渲染：全部贴图、精灵从参数传入，内部不持有
@@ -365,8 +369,20 @@ void GameCore::RenderScene(
         item.checkLifetime(myplayer.pos, totalRoadLength);
         if (!gameOver && CheckItemPickCollision(playerCar, item.itemSprite))
         {
-            if (item.type == ITEM_NITRO) nitroTimer = ITEM_DURATION;
-            if (item.type == ITEM_FLY) flyTimer = ITEM_DURATION;
+            //if (item.type == ITEM_NITRO) nitroTimer = ITEM_DURATION;
+            //if (item.type == ITEM_FLY) flyTimer = ITEM_DURATION;
+            //item.active = false;
+            if (item.type == ITEM_NITRO)
+            {
+                hasNitroPending = true;
+                printf("Debug: Nitro picked, pending set = %d\n", hasNitroPending);
+            }
+            if (item.type == ITEM_FLY)
+            {
+                hasFlyPending = true;
+                printf("Debug: Fly picked, pending set = %d\n", hasFlyPending);
+            }
+
             item.active = false;
         }
     }
