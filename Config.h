@@ -14,6 +14,10 @@ extern const float camD;
 // 玩家车道限制
 extern const float SAFE_LANE_LIMIT;
 
+//1.0预警边界、超时5秒判定
+extern const float LANE_WARN_LIMIT;
+extern const float LANE_TIMEOUT_SECONDS;
+
 // 障碍物生成参数
 extern const int OBSTACLE_SPAWN_STEP;
 extern const int MAX_OBSTACLE_COUNT;
@@ -26,5 +30,6 @@ enum ItemType
 };
 extern const float ITEM_DURATION;
 extern const int ITEM_SPAWN_INTERVAL;
+
 
 #endif

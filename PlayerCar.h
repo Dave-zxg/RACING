@@ -17,9 +17,9 @@ public:
     {
         speed = 0;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-            playerX += 0.1f;
+            playerX += 0.05f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-            playerX -= 0.1f;
+            playerX -= 0.05f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
             speed = 200.f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
@@ -44,7 +44,7 @@ public:
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab)&& nitroTime > 0.f)
-            speed *= 3.f;
+            speed *= 2.f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) && flyTime > 0.f)
             H += 100.f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))

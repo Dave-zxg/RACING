@@ -38,7 +38,7 @@ void obstacle::render(sf::RenderWindow& app, Line& seg, int camH, int winW, int 
 
 void obstacle::render(sf::RenderWindow& win)
 {
-    // 你原本的多参数render保留，这里做封装调用
+    // 原本的多参数render保留，这里做封装调用
     // 注意：渲染需要的Line、相机参数在GameCore帧循环传入，此处按需改造
 
 }
@@ -71,10 +71,10 @@ bool CheckSpriteCollision(const sf::Sprite& sprPlayer, const sf::Sprite& sprObs)
 {
     sf::FloatRect playerBox = sprPlayer.getGlobalBounds();
     sf::FloatRect obsBox = sprObs.getGlobalBounds();
-    playerBox.position.x += 70;
-    playerBox.position.y += 70;
-    playerBox.size.x -= 100;
-    playerBox.size.y -= 100;
+    playerBox.position.x += 50;
+    playerBox.position.y += 50;
+    playerBox.size.x -= 80;
+    playerBox.size.y -= 80;
     obsBox.position.x += 50;
     obsBox.position.y += 50;
     obsBox.size.x -= 80;

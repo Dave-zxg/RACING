@@ -5,7 +5,7 @@
 #include "Item.h"
 using namespace sf;
 GameCore::GameCore(sf::RenderWindow& win)
-	: app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false),nitroTimer(0.f), flyTimer(0.f), hasNitroPending(false), hasFlyPending(false)// 新增
+	: app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false),nitroTimer(0.f), flyTimer(0.f), hasNitroPending(false), hasFlyPending(false), laneDeviateTimer(0.f)// 新增
 {
     // 玩家初始值不变
     myplayer.playerX = 0.f;
@@ -162,6 +162,7 @@ void GameCore::ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::
     gameTime = 0.f;
     nitroTimer = 0.f;
     flyTimer = 0.f;
+    laneDeviateTimer = 0.f; // 重置偏离计时
     hasNitroPending = false; // 清除pending
     hasFlyPending = false;
     myplayer.ResetPlayer(myplayer.pos);
@@ -215,6 +216,8 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
     while (myplayer.pos < 0)
         myplayer.pos += N * segL;
 
+
+    float absX = std::abs(myplayer.playerX);
     if (myplayer.IsOutOfLane())
     {
         gameOver = true;
@@ -228,7 +231,34 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
             isNewRecord = false;
         }
     }
-
+    else if (absX > LANE_WARN_LIMIT)
+    {
+        // 在1.0 ~ 1.3之间，累计偏离时间
+        laneDeviateTimer+= dt;
+        // 持续超过5秒游戏结束
+        if (laneDeviateTimer >= LANE_TIMEOUT_SECONDS)
+        {
+            gameOver
+                = true;
+            if (gameScore > bestScore)
+            {
+                bestScore
+                    = gameScore;
+                isNewRecord
+                    = true;
+            }
+            else
+            {
+                isNewRecord
+                    = false;
+            }
+        }
+    }
+    else
+    {
+        // 回到1.0以内，重置计时
+        laneDeviateTimer = 0.f;
+    }
     // 小车屏幕定位，playerCar外部传入
     sf::FloatRect carBounds = playerCar.getLocalBounds();
     float carX = (width - carBounds.size.x) / 2.f;

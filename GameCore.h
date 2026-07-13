@@ -44,7 +44,7 @@ public:
 
     float nitroTimer;           // 氮气剩余时间
     float flyTimer;             // 飞行剩余时间
-
+    float laneDeviateTimer;     // 偏离1.0f累计计时
     // 新增道具pending标志：表示已拾取但尚未激活计时
     bool hasNitroPending;
     bool hasFlyPending;
