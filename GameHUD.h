@@ -14,6 +14,7 @@ public:
     void UpdateBest(int bestScore); // 新增
     void UpdateTimer(float second);
     void UpdateItemStatus(float nitro, float fly, bool nitroPending, bool flyPending);
+    void UpdateDeviateCountdown(float devTime);
     void SetGameOver(bool isOver, bool newRecord); // 修改参数
     void Render(sf::RenderWindow& win);
 
@@ -27,5 +28,6 @@ private:
     std::unique_ptr<sf::Text> m_gameOverText;
     std::unique_ptr<sf::Text> m_nitroText;
     std::unique_ptr<sf::Text> m_flyText;
+    std::unique_ptr<sf::Text> m_deviateText;
 };
 #endif

@@ -271,6 +271,7 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
     hud.SetGameOver(gameOver, isNewRecord);
     // 新增：刷新HUD道具显示
     hud.UpdateItemStatus(nitroTimer, flyTimer, hasNitroPending, hasFlyPending);
+    hud.UpdateDeviateCountdown(laneDeviateTimer);
 }
 
 // 渲染：全部贴图、精灵从参数传入，内部不持有

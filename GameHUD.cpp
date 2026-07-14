@@ -27,38 +27,46 @@ GameHUD::GameHUD()
 
     // 最高纪录UI（分数下方）新增
     m_bestText = std::make_unique<sf::Text>(m_hudFont);
-    m_bestText->setCharacterSize(24);
+    m_bestText->setCharacterSize(28);
     m_bestText->setFillColor(sf::Color::Black);
     m_bestText->setPosition(sf::Vector2f{ 10.f, 40.f });
     UpdateBest(0);
 
     // 计时文本（黑色）
     m_timerText = std::make_unique<sf::Text>(m_hudFont);
-    m_timerText->setCharacterSize(28);
+    m_timerText->setCharacterSize(32);
     m_timerText->setFillColor(sf::Color::Black);
     m_timerText->setPosition(sf::Vector2f{ static_cast<float>(width) - 160.f, 10.f });
     UpdateTimer(0.f);
 
     // 氮气道具文字
     m_nitroText = std::make_unique<sf::Text>(m_hudFont);
-    m_nitroText->setCharacterSize(24);
+    m_nitroText->setCharacterSize(28);
     m_nitroText->setFillColor(sf::Color::Blue);
     m_nitroText->setPosition(sf::Vector2f{ 10.f, 70.f });
 
     // 飞行道具文字
     m_flyText = std::make_unique<sf::Text>(m_hudFont);
-    m_flyText->setCharacterSize(24);
+    m_flyText->setCharacterSize(32);
     m_flyText->setFillColor(sf::Color(200, 0, 200));
     m_flyText->setPosition(sf::Vector2f{ 10.f, 100.f });
 
     // GameOver文字
     m_gameOverText = std::make_unique<sf::Text>(m_hudFont);
-    m_gameOverText->setCharacterSize(60);
+    m_gameOverText->setCharacterSize(75);
     m_gameOverText->setFillColor(sf::Color::Red);
     m_gameOverText->setString("GAME OVER!\nPress R to Restart");
     sf::FloatRect textBounds = m_gameOverText->getLocalBounds();
     m_gameOverText->setOrigin(sf::Vector2f{ textBounds.size.x / 2.f, textBounds.size.y / 2.f });
     m_gameOverText->setPosition(sf::Vector2f{ width / 2.f, height / 2.f });
+
+    // ========== 车道偏离倒计时文字 ==========
+    m_deviateText = std::make_unique<sf::Text>(m_hudFont);
+    m_deviateText->setCharacterSize(30);
+    m_deviateText->setFillColor(sf::Color::Red);
+    m_deviateText->setPosition(sf::Vector2f{ 10.f, 130.f });
+    // 默认透明不显示
+    m_deviateText->setFillColor(sf::Color::Transparent);
 }
 
 void GameHUD::UpdateScore(int score)
@@ -107,7 +115,7 @@ void GameHUD::UpdateItemStatus(float nitro, float fly, bool nitroPending, bool f
 
     // 更新飞行显示
     ss.str("");
-    ss.clear();
+    ss.clear(); 
     if (fly > 0.f)
     {
         ss << "Fly: " << std::fixed << std::setprecision(1) << fly;
@@ -143,6 +151,24 @@ void GameHUD::SetGameOver(bool isOver, bool newRecord)
     }
 }
 
+void GameHUD::UpdateDeviateCountdown(float devTime)
+{
+    if (!m_fontValid) return;
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1);
+    // 剩余危险时间 = 总超时5秒 - 当前累计偏离时间
+    float remain = LANE_TIMEOUT_SECONDS - devTime;
+    if (remain < 0.f) remain = 0.f;
+    ss << "Out of lane! Remain:" << remain << "s";
+    m_deviateText->setString(ss.str());
+    // devTime>0 显示红色文字，否则透明隐藏
+    if (devTime > 0.01f)
+        m_deviateText->setFillColor(sf::Color::Red);
+    else
+        m_deviateText->setFillColor(sf::Color::Transparent);
+}
+
+
 void GameHUD::Render(sf::RenderWindow& win)
 {
     if (!m_fontValid) return;
@@ -154,4 +180,5 @@ void GameHUD::Render(sf::RenderWindow& win)
     // 新增绘制道具状态文字
     win.draw(*m_nitroText);
     win.draw(*m_flyText);
+    win.draw(*m_deviateText);
 }
