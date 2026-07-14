@@ -10,7 +10,10 @@ GameMenu::GameMenu(sf::RenderWindow& win)
     winH(0.f),
     m_bgSprite(nullptr),
     m_textStart(nullptr),
-    m_textQuit(nullptr)
+    m_textQuit(nullptr),
+    m_textInstructions(nullptr),
+    m_textInstructionContent(nullptr),
+    m_showInstructions(false)
 {
     auto size = m_win.getSize();
     winW = static_cast<float>(size.x);
@@ -45,18 +48,43 @@ GameMenu::GameMenu(sf::RenderWindow& win)
     // 创建菜单文字按钮
     m_textStart = std::make_unique<sf::Text>(m_font, L"Start Game", 100);
     m_textQuit = std::make_unique<sf::Text>(m_font, L"Quit", 100);
-
+    m_textInstructions = std::make_unique<sf::Text>(m_font, L"Instructions", 100);
+    
     // 开始按钮居中
     auto startRect = m_textStart->getLocalBounds();
     m_textStart->setOrigin(sf::Vector2f{ startRect.size.x / 2.f, startRect.size.y / 2.f });
-    m_textStart->setPosition(sf::Vector2f{ winW / 2.f, winH / 2.f - 70.f });
+    m_textStart->setPosition(sf::Vector2f{ winW / 2.f, winH / 2.f - 120.f });
     m_textStart->setFillColor(sf::Color::White);
 
     // 退出按钮居中
     auto quitRect = m_textQuit->getLocalBounds();
     m_textQuit->setOrigin(sf::Vector2f{ quitRect.size.x / 2.f, quitRect.size.y / 2.f });
-    m_textQuit->setPosition(sf::Vector2f{ winW / 2.f, winH / 2.f + 70.f });
+    m_textQuit->setPosition(sf::Vector2f{ winW / 2.f, winH / 2.f });
     m_textQuit->setFillColor(sf::Color(180, 180, 180));
+
+    // 说明按钮（在退出下方）
+    auto instRect = m_textInstructions->getLocalBounds();
+    m_textInstructions->setOrigin(sf::Vector2f{ instRect.size.x / 2.f, instRect.size.y / 2.f });
+    m_textInstructions->setPosition(sf::Vector2f{ winW / 2.f, winH / 2.f + 120.f });
+    m_textInstructions->setFillColor(sf::Color(180, 180, 180));
+
+    // 创建说明内容（多行文字）
+    m_textInstructionContent = std::make_unique<sf::Text>(m_font,
+        L"Game Instructions:\n"
+        L"Arrow keys: Move\n"
+        L"Up: Speed up\n"
+        L"Down: Slow down\n"
+        L"Tab: Use Nitro (if collected)\n"
+        L"W: Fly (if collected)\n"
+        L"Avoid obstacles and stay in lane!\n"
+        L"Press any key to return.",
+        50);
+    m_textInstructionContent->setOrigin(sf::Vector2f{
+        m_textInstructionContent->getLocalBounds().size.x / 2.f,
+        m_textInstructionContent->getLocalBounds().size.y / 2.f
+        });
+    m_textInstructionContent->setPosition(sf::Vector2f{ winW / 2.f, winH / 2.f });
+    m_textInstructionContent->setFillColor(sf::Color::White);
 }
 
 GameMenu::MenuState GameMenu::RunMenu()
@@ -76,37 +104,58 @@ GameMenu::MenuState GameMenu::RunMenu()
 
             if (const auto* key = evt.getIf<sf::Event::KeyPressed>())
             {
+                if (m_showInstructions)
+                {
+                    // 说明界面：按任意键返回菜单
+                    m_showInstructions = false;
+                    m_selected = 2; // 光标停在“说明”上
+                    continue;
+                }
                 if (key->code == sf::Keyboard::Key::Up)
-                    m_selected = (m_selected - 1 + 2) % 2;
+                    m_selected = (m_selected - 1 + 3) % 3;
                 if (key->code == sf::Keyboard::Key::Down)
-                    m_selected = (m_selected + 1) % 2;
+                    m_selected = (m_selected + 1) % 3;
                 if (key->code == sf::Keyboard::Key::Enter)
                 {
                     if (m_selected == 0)
                         return MENU_START_GAME;
-                    else
+                    else if (m_selected == 1)
                         return MENU_QUIT;
+                    else if (m_selected == 2)
+                    {
+                        // 进入说明界面
+                        m_showInstructions = true;
+                    }
                 }
             }
         }
 
-        // 切换高亮颜色
+        // 统一设置高亮颜色（先全部置灰，再高亮当前选中）
+        m_textStart->setFillColor(sf::Color(100, 100, 100));
+        m_textQuit->setFillColor(sf::Color(100, 100, 100));
+        m_textInstructions->setFillColor(sf::Color(100, 100, 100));
         if (m_selected == 0)
-        {
             m_textStart->setFillColor(sf::Color::White);
-            m_textQuit->setFillColor(sf::Color(100, 100, 100));
-        }
-        else
-        {
-            m_textStart->setFillColor(sf::Color(100, 100, 100));
+        else if (m_selected == 1)
             m_textQuit->setFillColor(sf::Color::White);
-        }
+        else if (m_selected == 2)
+            m_textInstructions->setFillColor(sf::Color::White);
 
         // 渲染菜单画面
         m_win.clear(sf::Color(8, 8, 20));
         m_win.draw(*m_bgSprite);
-        m_win.draw(*m_textStart);
-        m_win.draw(*m_textQuit);
+        if (m_showInstructions)
+        {
+            // 显示说明内容
+            m_win.draw(*m_textInstructionContent);
+        }
+        else
+        {
+            // 显示菜单按钮
+            m_win.draw(*m_textStart);
+            m_win.draw(*m_textQuit);
+            m_win.draw(*m_textInstructions);
+        }
         m_win.display();
     }
     return MENU_QUIT;
