@@ -20,11 +20,22 @@ GameMenu::GameMenu(sf::RenderWindow& win)
     winH = static_cast<float>(size.y);
 
     // 加载菜单背景图 1024*768 无文字红色赛车
-    std::optional<bool> bgLoad = m_bgTex.loadFromFile("E:/vs/2025/小学期1/racing/images/menu_bg.png");
+    std::optional<bool> bgLoad = m_bgTex.loadFromFile("images/menu_bg.png");
     if (!bgLoad.has_value() || !bgLoad.value())
     {
-        MessageBoxW(NULL, L"pictures/menu_bg.png 缺失，请把res文件夹放到exe同级目录", L"资源错误", MB_OK | MB_ICONERROR);
+        MessageBoxW(NULL, L"images/menu_bg.png 缺失，请把res文件夹放到exe同级目录", L"资源错误", MB_OK | MB_ICONERROR);
         exit(-1);
+    }
+    // 新增：加载中文字体（用于说明）
+    if (!m_chineseFont.openFromFile("images/cfont.ttf"))
+    {
+        // 如果微软雅黑加载失败，尝试宋体
+        if (!m_chineseFont.openFromFile("C:/Windows/Fonts/simsun.ttc"))
+        {
+            // 如果都失败，可以回退到使用 m_font（即使不支持中文），或者弹错
+            MessageBoxW(NULL, L"中文字体加载失败，说明可能无法正常显示", L"警告", MB_OK);
+            // 这里继续运行，但说明文字可能显示为方框
+        }
     }
     m_bgSprite = std::make_unique<sf::Sprite>(m_bgTex);
 
@@ -38,10 +49,10 @@ GameMenu::GameMenu(sf::RenderWindow& win)
     m_bgSprite->setPosition(sf::Vector2f{ winW / 2.f, winH / 2.f });
 
     // 加载系统字体兜底
-    if (!m_font.openFromFile("E:/vs/2025/小学期1/racing/images/font.ttf"))
+    if (!m_font.openFromFile("images/font.ttf"))
     {
         // 如果加载失败，弹窗提示（可选）
-        MessageBoxW(NULL, L"自定义字体加载失败，请检查 E: / vs / 2025 / 小学期1 / racing / images / font.ttf 是否存在", L"字体错误", MB_OK | MB_ICONERROR);
+        MessageBoxW(NULL, L"自定义字体加载失败，请检查 images / font.ttf 是否存在", L"字体错误", MB_OK | MB_ICONERROR);
         exit(-1);
     }
 
@@ -69,16 +80,24 @@ GameMenu::GameMenu(sf::RenderWindow& win)
     m_textInstructions->setFillColor(sf::Color(180, 180, 180));
 
     // 创建说明内容（多行文字）
-    m_textInstructionContent = std::make_unique<sf::Text>(m_font,
-        L"Game Instructions:\n"
-        L"Arrow keys: Move\n"
-        L"Up: Speed up\n"
-        L"Down: Slow down\n"
-        L"Tab: Use Nitro (if collected)\n"
-        L"W: Fly (if collected)\n"
-        L"Avoid obstacles and stay in lane!\n"
-        L"Press any key to return.",
-        50);
+    m_textInstructionContent = std::make_unique<sf::Text>(m_chineseFont,
+        L"游戏说明\n"
+        L"操作方式：\n"
+        L"  方向键左右 : 转向\n"
+        L"  ↑ : 加速 "
+        L"  ↓ : 倒车\n"
+        L"  Tab 键 : 使用氮气（需拾取）\n"
+        L"  W 键 : 飞行（需拾取） "
+        L"  S 键 : 飞行时下降\n"
+        L"道具效果：\n"
+        L"  氮气 : 持续8秒加速\n"
+        L"  飞行 : 持续8秒升高\n"
+        L"失败条件：\n"
+        L"  - 撞上其他车辆\n"
+        L"  - 驶出车道边界（超过 ±1.3）\n"
+        L"  - 在车道边缘（±0.9 ~ ±1.3）持续5秒\n\n"
+        L"按任意键返回",
+        30);
     m_textInstructionContent->setOrigin(sf::Vector2f{
         m_textInstructionContent->getLocalBounds().size.x / 2.f,
         m_textInstructionContent->getLocalBounds().size.y / 2.f
