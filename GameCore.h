@@ -1,6 +1,7 @@
 #ifndef GAMECORE_H
 #define GAMECORE_H
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>        // 新增
 #include <optional>
 #include <cmath>
 #include <vector>
@@ -20,6 +21,9 @@ class GameCore
 public:
     // 构造仅接收窗口，贴图外部传入
     GameCore(sf::RenderWindow& win);
+    // 新增：设置游戏背景音乐指针
+    void setMusic(sf::Music* music) { m_gameMusic = music; }
+
     // 主循环，所有贴图参数由main调用时传入
     void Run(
         sf::Texture t[50],
@@ -29,11 +33,10 @@ public:
         sf::Sprite& playerCar,
         sf::Texture& obsCarTex,
         sf::Texture& nitroTex,
-        sf::Texture&flyTex
+        sf::Texture& flyTex
     );
     sf::RenderWindow& app;
     std::vector<Line> lines;
-
 
     int N;
     std::vector<obstacle> obstacleList;
@@ -48,31 +51,36 @@ public:
     // 新增道具pending标志：表示已拾取但尚未激活计时
     bool hasNitroPending;
     bool hasFlyPending;
-
     int gameScore;
-	int bestScore;
+    int bestScore;
     float gameTime;
     sf::Clock gameClock;
     bool gameOver;
-	bool isNewRecord;
+    bool isNewRecord;
 
     // 内部逻辑函数，贴图全部作为参数传入
     void GenerateTrack();
     void SpawnObstacles(sf::Texture& obsCarTex);
+    void RefreshSpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex, float playerPos);
     // 生成道具，传入两张道具纹理
-    void RefreshSpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex,float playerPos);
     // 每帧更新道具倒计时
     void UpdateItemTimer(float dt);
     void ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex);
     void HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex);
-    void UpdateGameLogic(sf::Sprite& playerCar,float dt);
+    void UpdateGameLogic(sf::Sprite& playerCar, float dt);
     void RenderScene(
         sf::Texture t[50],
         sf::Texture& bg,
         sf::Sprite& sBackground,
         sf::Sprite& playerCar,
-        sf::Texture& obsCarTex,sf::Texture& nitroTex,
+        sf::Texture& obsCarTex, sf::Texture& nitroTex,
         sf::Texture& flyTex
     );
+    void setNitroMusic(sf::Music* music) { m_nitroMusic = music; } // 新增
+
+private:
+    sf::Music* m_gameMusic = nullptr;   // 游戏背景音乐指针
+    sf::Music* m_nitroMusic = nullptr;        // 氮气加速音效
+    bool m_prevTabPressed = false;            // 用于检测按键上升沿
 };
 #endif
