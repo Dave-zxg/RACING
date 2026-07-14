@@ -7,7 +7,7 @@
 
 using namespace sf;
 
-GameCore::GameCore(sf::RenderWindow &win)
+GameCore::GameCore(sf::RenderWindow& win)
     : app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false)
 {
     // 玩家初始值不变
@@ -63,12 +63,10 @@ void GameCore::GenerateTrack()
             if (seqIndex % 2 == 0)
             {
                 line.spawnItem = ITEM_NITRO;
-                std::cout << "生成【氮气NITRO】索引:" << i << "\n";
             }
             else
             {
                 line.spawnItem = ITEM_FLY;
-                std::cout << "生成【飞行FLY】索引:" << i << "\n";
             }
             line.spriteX = 0.f;
             line.spriteId = 6;
@@ -78,7 +76,7 @@ void GameCore::GenerateTrack()
     N = lines.size();
 }
 // 生成障碍，obsCarTex由外部main传入
-void GameCore::SpawnObstacles(sf::Texture &obsCarTex)
+void GameCore::SpawnObstacles(sf::Texture& obsCarTex)
 {
     obstacleList.clear();
     for (int i = 200; i < N; i += OBSTACLE_SPAWN_STEP)
@@ -97,11 +95,11 @@ void GameCore::SpawnObstacles(sf::Texture &obsCarTex)
 }
 
 // R键重置，贴图参数外部传入
-void GameCore::RefreshSpawnItems(sf::Texture &nitroTex, sf::Texture &flyTex, float playerPos)
+void GameCore::RefreshSpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex, float playerPos)
 {
     for (int i = 0; i < N; i++)
     {
-        Line &line = lines[i];
+        Line& line = lines[i];
         if (line.spawnItem == ITEM_NONE)
             continue;
 
@@ -109,7 +107,7 @@ void GameCore::RefreshSpawnItems(sf::Texture &nitroTex, sf::Texture &flyTex, flo
         Item newItem(nitroTex, flyTex);
         float zPos = i * segL;
         bool exist = false;
-        for (auto &it : itemList)
+        for (auto& it : itemList)
         {
             if (it.active && fabs(it.zPos - zPos) < segL)
             {
@@ -150,7 +148,7 @@ void GameCore::UpdateItemTimer(float dt)
         }
     }
 }
-void GameCore::ResetFullGame(sf::Texture &obsCarTex, sf::Texture &nitroTex, sf::Texture &flyTex)
+void GameCore::ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex)
 {
     gameOver = false;
     gameScore = 0;
@@ -177,17 +175,17 @@ void GameCore::ResetFullGame(sf::Texture &obsCarTex, sf::Texture &nitroTex, sf::
 }
 
 // 事件循环，无贴图
-void GameCore::HandleEventLoop(sf::Texture &obsCarTex, sf::Texture &nitroTex, sf::Texture &flyTex)
+void GameCore::HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex)
 {
     std::optional<sf::Event> eventOpt;
     while ((eventOpt = app.pollEvent()))
     {
-        auto &e = *eventOpt;
+        auto& e = *eventOpt;
         if (e.is<sf::Event::Closed>())
         {
             app.close();
         }
-        if (const auto *keyEvt = eventOpt->getIf<sf::Event::KeyPressed>())
+        if (const auto* keyEvt = eventOpt->getIf<sf::Event::KeyPressed>())
         {
             if (gameOver && keyEvt->code == sf::Keyboard::Key::R)
             {
@@ -199,8 +197,9 @@ void GameCore::HandleEventLoop(sf::Texture &obsCarTex, sf::Texture &nitroTex, sf
 }
 
 // 更新逻辑，仅playerCar作为外部精灵传入
-void GameCore::UpdateGameLogic(sf::Sprite &playerCar, float dt, sf::Texture &obsCarTex, sf::Texture &explodeTex)
+void GameCore::UpdateGameLogic(sf::Sprite& playerCar, float dt, sf::Texture& obsCarTex, sf::Texture& explodeTex)
 {
+	bool wasGameOver = gameOver;
     UpdateItemTimer(dt);
     if (!gameOver && !myplayer.controlLock)
     {
@@ -270,15 +269,7 @@ void GameCore::UpdateGameLogic(sf::Sprite &playerCar, float dt, sf::Texture &obs
         if (crashDelay <= 0.f)
         {
             gameOver = true;
-            if (gameScore > bestScore)
-            {
-                bestScore = gameScore;
-                isNewRecord = true;
-            }
-            else
-            {
-                isNewRecord = false;
-            }
+           
         }
     }
 
@@ -297,18 +288,25 @@ void GameCore::UpdateGameLogic(sf::Sprite &playerCar, float dt, sf::Texture &obs
         m_nitroMusic->play();
     }
     m_prevTabPressed = tabPressed;
+    if (!wasGameOver && gameOver)
+    {
+        if (m_nitroMusic)
+        {
+			m_nitroMusic->stop();
+        }
+    }
 }
 
 // 渲染：全部贴图、精灵从参数传入，内部不持有
 void GameCore::RenderScene(
     sf::Texture t[50],
-    sf::Texture &bg,
-    sf::Sprite &sBackground,
-    sf::Sprite &playerCar,
-    sf::Texture &obsCarTex,
-    sf::Texture &nitroTex,
-    sf::Texture &flyTex,
-    sf::Texture &explodeTex,
+    sf::Texture& bg,
+    sf::Sprite& sBackground,
+    sf::Sprite& playerCar,
+    sf::Texture& obsCarTex,
+    sf::Texture& nitroTex,
+    sf::Texture& flyTex,
+    sf::Texture& explodeTex,
     float dt)
 {
     app.clear(Color(105, 205, 4));
@@ -331,7 +329,7 @@ void GameCore::RenderScene(
     float x = 0, dx = 0;
     for (int n = startPos; n < startPos + 300; n++)
     {
-        Line &l = lines[n % N];
+        Line& l = lines[n % N];
         l.project(myplayer.playerX * roadW - x, camH, startPos * segL - (n >= N ? N * segL : 0));
         x += dx;
         dx += l.curve;
@@ -342,7 +340,7 @@ void GameCore::RenderScene(
         Color grass = (n / 3) % 2 ? Color(16, 200, 16) : Color(0, 154, 0);
         Color rumble = (n / 3) % 2 ? Color(255, 255, 255) : Color(0, 0, 0);
         Color road = (n / 3) % 2 ? Color(107, 107, 107) : Color(105, 105, 105);
-        Line &p = lines[(n - 1) % N];
+        Line& p = lines[(n - 1) % N];
         drawQuad(app, grass, 0, p.Y, width, 0, l.Y, width);
         drawQuad(app, rumble, p.X, p.Y, p.W * 1.2, l.X, l.Y, l.W * 1.2);
         drawQuad(app, road, p.X, p.Y, p.W, l.X, l.Y, l.W);
@@ -352,7 +350,7 @@ void GameCore::RenderScene(
         lines[n % N].drawSprite(app, t);
 
     int totalRoadLength = N * segL;
-    for (auto &obs : obstacleList)
+    for (auto& obs : obstacleList)
     {
         if (!obs.active)
         {
@@ -365,7 +363,7 @@ void GameCore::RenderScene(
         while (relZ > totalRoadLength)
             relZ -= totalRoadLength;
         int segIndex = static_cast<int>(relZ / segL) % N;
-        Line &targetSeg = lines[segIndex];
+        Line& targetSeg = lines[segIndex];
         int currentCamH = lines[startPos].y + myplayer.H;
         float curveX = 0.f;
         float curveDx = 0.f;
@@ -383,10 +381,21 @@ void GameCore::RenderScene(
             bool isCrash = CheckSpriteCollision(playerCar, obs.obsSprite);
             if (isCrash && !waitingCrash)
             {
+                if (m_gameMusic)
+                    m_nitroMusic->stop();
                 myplayer.controlLock = true;
                 SpawnExplosion(myplayer.playerX, myplayer.pos, explodeTex);
                 waitingCrash = true;
                 crashDelay = 1.0f; // 预留1秒播放爆炸，可自行改成0.8 / 1.2
+                if (gameScore > bestScore)
+                {
+                    bestScore = gameScore;
+                    isNewRecord = true;
+                }
+                else
+                {
+                    isNewRecord = false;
+                }
             }
         }
         obs.checkLifetime(myplayer.pos, totalRoadLength);
@@ -401,7 +410,7 @@ void GameCore::RenderScene(
     }
     int playerSeg = myplayer.pos / segL;
 
-    for (auto &item : itemList)
+    for (auto& item : itemList)
     {
         if (!item.active)
             continue;
@@ -412,7 +421,7 @@ void GameCore::RenderScene(
             relZ -= totalRoadLength;
 
         int segIndex = static_cast<int>(relZ / segL) % N;
-        Line &targetSeg = lines[segIndex];
+        Line& targetSeg = lines[segIndex];
         float curveX = 0.f, curveDx = 0.f;
         for (int n = playerSeg; n <= segIndex; n++)
         {
@@ -453,47 +462,47 @@ void GameCore::RenderScene(
     // 放在UpdateGameLogic最下方，无条件生成
 }
 
-void GameCore::SpawnExplosion(float trackX, float trackZ, sf::Texture &expTex)
+void GameCore::SpawnExplosion(float trackX, float trackZ, sf::Texture& expTex)
 {
-    std::cout << "爆炸生成函数被调用" << std::endl;
+    
     Explosion exp(trackX, trackZ, expTex, 1);
     explosionList.push_back(exp);
 }
 
-void GameCore::UpdateDrawExplosion(float dt, sf::RenderWindow &app, sf::Texture &expTex)
+void GameCore::UpdateDrawExplosion(float dt, sf::RenderWindow& app, sf::Texture& expTex)
 {
     int camH = lines[myplayer.pos / segL % N].y + myplayer.H;
     float camX = myplayer.playerX;
     int camZ = myplayer.pos;
 
     // 更新爆炸动画
-    for (auto &exp : explosionList)
+    for (auto& exp : explosionList)
     {
         exp.Update(dt, camX, camH, camZ);
         exp.Project(camX, camH, camZ);
     }
 
     // 渲染顺序：碎片粒子 → 爆炸贴图（贴图在上层）
-    for (auto &exp : explosionList)
+    for (auto& exp : explosionList)
         exp.Render(app);
 
     // 清除生命周期结束的爆zha
     explosionList.erase(std::remove_if(explosionList.begin(), explosionList.end(),
-                                       [](Explosion &e)
-                                       { return e.IsDead(); }),
-                        explosionList.end());
+        [](Explosion& e)
+        { return e.IsDead(); }),
+        explosionList.end());
 }
 // 主循环：所有贴图从main传入，贴图变量全部留在main
 void GameCore::Run(
     sf::Texture t[50],
-    sf::Texture &bg,
-    sf::Sprite &sBackground,
-    sf::Texture &carTex,
-    sf::Sprite &playerCar,
-    sf::Texture &obsCarTex,
-    sf::Texture &nitroTex,
-    sf::Texture &flyTex,
-    sf::Texture &explodeTex)
+    sf::Texture& bg,
+    sf::Sprite& sBackground,
+    sf::Texture& carTex,
+    sf::Sprite& playerCar,
+    sf::Texture& obsCarTex,
+    sf::Texture& nitroTex,
+    sf::Texture& flyTex,
+    sf::Texture& explodeTex)
 {
     if (m_gameMusic && m_gameMusic->getStatus() != sf::Music::Status::Playing)
     {
@@ -512,7 +521,7 @@ void GameCore::Run(
         std::optional<sf::Event> tempEvt;
         while ((tempEvt = app.pollEvent()))
         {
-            if (auto *key = tempEvt->getIf<sf::Event::KeyPressed>())
+            if (auto* key = tempEvt->getIf<sf::Event::KeyPressed>())
             {
                 if (gameOver && key->code == sf::Keyboard::Key::R)
                 {
