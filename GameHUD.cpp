@@ -8,7 +8,7 @@ GameHUD::GameHUD()
     m_timerText(nullptr),
     m_gameOverText(nullptr)
 {
-    // ×ÖÌå¼ÓÔØ¶µµ×
+    // å­—ä½“åŠ è½½å…œåº•
     if (m_hudFont.openFromFile("images/font.ttf"))
         m_fontValid = true;
     else if (m_hudFont.openFromFile("C:/Windows/Fonts/msyh.ttc"))
@@ -18,55 +18,47 @@ GameHUD::GameHUD()
 
     if (!m_fontValid) return;
 
-    // ·ÖÊıÎÄ±¾
+    // åˆ†æ•°æ–‡æœ¬
     m_scoreText = std::make_unique<sf::Text>(m_hudFont);
     m_scoreText->setCharacterSize(28);
     m_scoreText->setFillColor(sf::Color::Black);
     m_scoreText->setPosition(sf::Vector2f{ 10.f, 10.f });
     UpdateScore(0);
 
-    // ×î¸ß¼ÍÂ¼UI£¨·ÖÊıÏÂ·½£©ĞÂÔö
+    // æœ€é«˜çºªå½•UIï¼ˆåˆ†æ•°ä¸‹æ–¹ï¼‰æ–°å¢
     m_bestText = std::make_unique<sf::Text>(m_hudFont);
-    m_bestText->setCharacterSize(28);
+    m_bestText->setCharacterSize(24);
     m_bestText->setFillColor(sf::Color::Black);
     m_bestText->setPosition(sf::Vector2f{ 10.f, 40.f });
     UpdateBest(0);
 
-    // ¼ÆÊ±ÎÄ±¾£¨ºÚÉ«£©
+    // è®¡æ—¶æ–‡æœ¬ï¼ˆé»‘è‰²ï¼‰
     m_timerText = std::make_unique<sf::Text>(m_hudFont);
-    m_timerText->setCharacterSize(32);
+    m_timerText->setCharacterSize(28);
     m_timerText->setFillColor(sf::Color::Black);
     m_timerText->setPosition(sf::Vector2f{ static_cast<float>(width) - 160.f, 10.f });
     UpdateTimer(0.f);
 
-    // µªÆøµÀ¾ßÎÄ×Ö
+    // æ°®æ°”é“å…·æ–‡å­—
     m_nitroText = std::make_unique<sf::Text>(m_hudFont);
-    m_nitroText->setCharacterSize(28);
+    m_nitroText->setCharacterSize(24);
     m_nitroText->setFillColor(sf::Color::Blue);
     m_nitroText->setPosition(sf::Vector2f{ 10.f, 70.f });
 
-    // ·ÉĞĞµÀ¾ßÎÄ×Ö
+    // é£è¡Œé“å…·æ–‡å­—
     m_flyText = std::make_unique<sf::Text>(m_hudFont);
-    m_flyText->setCharacterSize(32);
+    m_flyText->setCharacterSize(24);
     m_flyText->setFillColor(sf::Color(200, 0, 200));
     m_flyText->setPosition(sf::Vector2f{ 10.f, 100.f });
 
-    // GameOverÎÄ×Ö
+    // GameOveræ–‡å­—
     m_gameOverText = std::make_unique<sf::Text>(m_hudFont);
-    m_gameOverText->setCharacterSize(75);
+    m_gameOverText->setCharacterSize(60);
     m_gameOverText->setFillColor(sf::Color::Red);
     m_gameOverText->setString("GAME OVER!\nPress R to Restart");
     sf::FloatRect textBounds = m_gameOverText->getLocalBounds();
     m_gameOverText->setOrigin(sf::Vector2f{ textBounds.size.x / 2.f, textBounds.size.y / 2.f });
     m_gameOverText->setPosition(sf::Vector2f{ width / 2.f, height / 2.f });
-
-    // ========== ³µµÀÆ«Àëµ¹¼ÆÊ±ÎÄ×Ö ==========
-    m_deviateText = std::make_unique<sf::Text>(m_hudFont);
-    m_deviateText->setCharacterSize(30);
-    m_deviateText->setFillColor(sf::Color::Red);
-    m_deviateText->setPosition(sf::Vector2f{ 10.f, 130.f });
-    // Ä¬ÈÏÍ¸Ã÷²»ÏÔÊ¾
-    m_deviateText->setFillColor(sf::Color::Transparent);
 }
 
 void GameHUD::UpdateScore(int score)
@@ -77,7 +69,7 @@ void GameHUD::UpdateScore(int score)
     m_scoreText->setString(ss.str());
 }
 
-//ĞÂÔö
+//æ–°å¢
 void GameHUD::UpdateBest(int bestScore)
 {
     if (!m_fontValid) return;
@@ -100,7 +92,7 @@ void GameHUD::UpdateItemStatus(float nitro, float fly, bool nitroPending, bool f
 {
     if (!m_fontValid) return;
     std::stringstream ss;
-    // ¸üĞÂµªÆøÏÔÊ¾
+    // æ›´æ–°æ°®æ°”æ˜¾ç¤º
     ss.str("");
     ss.clear();
     if (nitro > 0.f)
@@ -113,9 +105,9 @@ void GameHUD::UpdateItemStatus(float nitro, float fly, bool nitroPending, bool f
     }
     m_nitroText->setString(ss.str());
 
-    // ¸üĞÂ·ÉĞĞÏÔÊ¾
+    // æ›´æ–°é£è¡Œæ˜¾ç¤º
     ss.str("");
-    ss.clear(); 
+    ss.clear();
     if (fly > 0.f)
     {
         ss << "Fly: " << std::fixed << std::setprecision(1) << fly;
@@ -133,7 +125,7 @@ void GameHUD::UpdateItemStatus(float nitro, float fly, bool nitroPending, bool f
 //    m_timerText->setFillColor(color);
 //}
 
-//µ÷Õû
+//è°ƒæ•´
 void GameHUD::SetGameOver(bool isOver, bool newRecord)
 {
     if (!m_fontValid) return;
@@ -151,34 +143,15 @@ void GameHUD::SetGameOver(bool isOver, bool newRecord)
     }
 }
 
-void GameHUD::UpdateDeviateCountdown(float devTime)
-{
-    if (!m_fontValid) return;
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(1);
-    // Ê£ÓàÎ£ÏÕÊ±¼ä = ×Ü³¬Ê±5Ãë - µ±Ç°ÀÛ¼ÆÆ«ÀëÊ±¼ä
-    float remain = LANE_TIMEOUT_SECONDS - devTime;
-    if (remain < 0.f) remain = 0.f;
-    ss << "Out of lane! Remain:" << remain << "s";
-    m_deviateText->setString(ss.str());
-    // devTime>0 ÏÔÊ¾ºìÉ«ÎÄ×Ö£¬·ñÔòÍ¸Ã÷Òş²Ø
-    if (devTime > 0.01f)
-        m_deviateText->setFillColor(sf::Color::Red);
-    else
-        m_deviateText->setFillColor(sf::Color::Transparent);
-}
-
-
 void GameHUD::Render(sf::RenderWindow& win)
 {
     if (!m_fontValid) return;
     win.draw(*m_scoreText);
-    win.draw(*m_bestText); // ĞÂÔö
+    win.draw(*m_bestText); // æ–°å¢
     win.draw(*m_timerText);
     win.draw(*m_gameOverText);
 
-    // ĞÂÔö»æÖÆµÀ¾ß×´Ì¬ÎÄ×Ö
+    // æ–°å¢ç»˜åˆ¶é“å…·çŠ¶æ€æ–‡å­—
     win.draw(*m_nitroText);
     win.draw(*m_flyText);
-    win.draw(*m_deviateText);
 }
