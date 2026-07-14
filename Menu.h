@@ -24,6 +24,7 @@ private:
     std::unique_ptr<sf::Sprite> m_bgSprite;
 
     sf::Font m_font;
+    sf::Font m_chineseFont;
     std::unique_ptr<sf::Text> m_textStart;
     std::unique_ptr<sf::Text> m_textQuit;
     std::unique_ptr<sf::Text> m_textInstructions; // 新增：游戏说明按钮
