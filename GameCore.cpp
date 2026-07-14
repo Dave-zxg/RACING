@@ -270,6 +270,7 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar, float dt)
     hud.SetGameOver(gameOver, isNewRecord);
     // 新增：刷新HUD道具显示
     hud.UpdateItemStatus(nitroTimer, flyTimer,hasNitroPending,hasFlyPending);
+    hud.UpdateDeviateCountdown(laneDeviateTimer);
     // ---- 新增：检测 Tab 按键按下瞬间 ----
     bool tabPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab);
     if (tabPressed && !m_prevTabPressed && nitroTimer > 0.f && m_nitroMusic)
