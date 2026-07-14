@@ -5,7 +5,7 @@
 #include "Item.h"
 using namespace sf;
 GameCore::GameCore(sf::RenderWindow& win)
-	: app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false),nitroTimer(0.f), flyTimer(0.f), hasNitroPending(false), hasFlyPending(false), laneDeviateTimer(0.f)// 新增
+    : app(win), gameScore(0), gameTime(0.f), gameOver(false), bestScore(0), isNewRecord(false), nitroTimer(0.f), flyTimer(0.f), hasNitroPending(false), hasFlyPending(false) // 新增
 {
     // 玩家初始值不变
     myplayer.playerX = 0.f;
@@ -85,7 +85,7 @@ void GameCore::SpawnObstacles(sf::Texture& obsCarTex)
     }
 }
 
-void GameCore::RefreshSpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex,float playerPos)
+void GameCore::RefreshSpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex, float playerPos)
 {
     //itemList.clear();
     for (int i = 0; i < N; i++)
@@ -111,9 +111,6 @@ void GameCore::RefreshSpawnItems(sf::Texture& nitroTex, sf::Texture& flyTex,floa
         newItem.setTrackPos(zPos, 0.f, line.spawnItem);
         itemList.push_back(newItem);
     }
-
-    
-    
 }
 
 void GameCore::UpdateItemTimer(float dt)
@@ -122,7 +119,6 @@ void GameCore::UpdateItemTimer(float dt)
     if (flyTimer > 0.f) flyTimer -= dt;
     if (nitroTimer < 0.f) nitroTimer = 0.f;
     if (flyTimer < 0.f) flyTimer = 0.f;
-
     // ========== 新增：飞行计时归零，小车回落地面 ==========
 
     if (flyTimer <= 0.f)
@@ -142,7 +138,7 @@ void GameCore::UpdateItemTimer(float dt)
 
             // 防止低于地面高度，封顶锁定
 
-            if (myplayer.H <1500.f)
+            if (myplayer.H < 1500.f)
                 myplayer.H = 1500.f;
 
         }
@@ -158,7 +154,7 @@ void GameCore::ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::
 {
     gameOver = false;
     gameScore = 0;
-	isNewRecord = false;
+    isNewRecord = false;
     gameTime = 0.f;
     nitroTimer = 0.f;
     flyTimer = 0.f;
@@ -170,6 +166,12 @@ void GameCore::ResetFullGame(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::
     itemList.clear();
     SpawnObstacles(obsCarTex);
     RefreshSpawnItems(nitroTex, flyTex, myplayer.pos);
+    // ---- 新增：重置背景音乐到开头 ----
+    if (m_gameMusic)
+    {
+        m_gameMusic->stop();
+        m_gameMusic->play();
+    }
 }
 
 // 事件循环，无贴图
@@ -187,27 +189,25 @@ void GameCore::HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf
         {
             if (gameOver && keyEvt->code == sf::Keyboard::Key::R)
             {
-                
-                ResetFullGame(obsCarTex,nitroTex, flyTex);
-                
+
+                ResetFullGame(obsCarTex, nitroTex, flyTex);
+
             }
         }
     }
 }
 
 // 更新逻辑，仅playerCar作为外部精灵传入
-void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
+void GameCore::UpdateGameLogic(sf::Sprite& playerCar, float dt)
 {
-
-	
     UpdateItemTimer(dt);
     if (!gameOver)
     {
-        myplayer.HandleInput(dt, myplayer.pos, nitroTimer, flyTimer, hasNitroPending, hasFlyPending);
+        myplayer.HandleInput(dt, myplayer.pos, nitroTimer, flyTimer,hasNitroPending,hasFlyPending);
         gameTime += dt;
         if (myplayer.speed > 0)
         {
-            float addScore = myplayer.speed * dt* 0.5f;
+            float addScore = myplayer.speed * dt * 0.5f;
             gameScore += static_cast<int>(addScore);
         }
     }
@@ -215,8 +215,6 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
         myplayer.pos -= N * segL;
     while (myplayer.pos < 0)
         myplayer.pos += N * segL;
-
-
     float absX = std::abs(myplayer.playerX);
     if (myplayer.IsOutOfLane())
     {
@@ -234,7 +232,7 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
     else if (absX > LANE_WARN_LIMIT)
     {
         // 在1.0 ~ 1.3之间，累计偏离时间
-        laneDeviateTimer+= dt;
+        laneDeviateTimer += dt;
         // 持续超过5秒游戏结束
         if (laneDeviateTimer >= LANE_TIMEOUT_SECONDS)
         {
@@ -259,6 +257,7 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
         // 回到1.0以内，重置计时
         laneDeviateTimer = 0.f;
     }
+
     // 小车屏幕定位，playerCar外部传入
     sf::FloatRect carBounds = playerCar.getLocalBounds();
     float carX = (width - carBounds.size.x) / 2.f;
@@ -270,8 +269,16 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar,float dt)
     hud.UpdateBest(bestScore);
     hud.SetGameOver(gameOver, isNewRecord);
     // 新增：刷新HUD道具显示
-    hud.UpdateItemStatus(nitroTimer, flyTimer, hasNitroPending, hasFlyPending);
-    hud.UpdateDeviateCountdown(laneDeviateTimer);
+    hud.UpdateItemStatus(nitroTimer, flyTimer,hasNitroPending,hasFlyPending);
+    // ---- 新增：检测 Tab 按键按下瞬间 ----
+    bool tabPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab);
+    if (tabPressed && !m_prevTabPressed && nitroTimer > 0.f && m_nitroMusic)
+    {
+        // 重头播放（如果已经在播放，先停止再播放）
+        m_nitroMusic->stop();
+        m_nitroMusic->play();
+    }
+    m_prevTabPressed = tabPressed;
 }
 
 // 渲染：全部贴图、精灵从参数传入，内部不持有
@@ -320,7 +327,7 @@ void GameCore::RenderScene(
         Line& p = lines[(n - 1) % N];
         drawQuad(app, grass, 0, p.Y, width, 0, l.Y, width);
         drawQuad(app, rumble, p.X, p.Y, p.W * 1.2, l.X, l.Y, l.W * 1.2);
-        drawQuad(app, road, p.X, p.Y, p.W, l.X,l.Y, l.W);
+        drawQuad(app, road, p.X, p.Y, p.W, l.X, l.Y, l.W);
     }
 
     for (int n = startPos + 300; n > startPos; n--)
@@ -377,7 +384,7 @@ void GameCore::RenderScene(
         else ++iter;
     }
     int playerSeg = myplayer.pos / segL;
-    
+
 
     for (auto& item : itemList)
     {
@@ -392,28 +399,22 @@ void GameCore::RenderScene(
         for (int n = playerSeg; n <= segIndex; n++)
         {
             int idx = n % N;
-            curveDx+= lines[idx].curve;
-            curveX+= curveDx;
+            curveDx += lines[idx].curve;
+            curveX += curveDx;
         }
         targetSeg.project(myplayer.playerX * roadW - curveX, camH, myplayer.pos);
         item.render(app, targetSeg, camH, width, height, myplayer.pos);
         item.checkLifetime(myplayer.pos, totalRoadLength);
         if (!gameOver && CheckItemPickCollision(playerCar, item.itemSprite))
         {
-            //if (item.type == ITEM_NITRO) nitroTimer = ITEM_DURATION;
-            //if (item.type == ITEM_FLY) flyTimer = ITEM_DURATION;
-            //item.active = false;
             if (item.type == ITEM_NITRO)
             {
                 hasNitroPending = true;
-               
             }
             if (item.type == ITEM_FLY)
             {
                 hasFlyPending = true;
-                
             }
-
             item.active = false;
         }
     }
@@ -421,13 +422,11 @@ void GameCore::RenderScene(
 
 
 
-    // 第二遍安全删除所有失效道具
+    // 清理跑出视野的道具
     for (auto iter = itemList.begin(); iter != itemList.end();)
     {
-        if (!iter->active)
-            iter = itemList.erase(iter);
-        else
-            ++iter;
+        if (!iter->active) iter = itemList.erase(iter);
+        else ++iter;
     }
 
 
@@ -435,9 +434,6 @@ void GameCore::RenderScene(
     hud.Render(app);
     app.display();
 }
-
-
-
 
 // 主循环：所有贴图从main传入，贴图变量全部留在main
 void GameCore::Run(
@@ -449,17 +445,24 @@ void GameCore::Run(
     sf::Texture& obsCarTex, sf::Texture& nitroTex, sf::Texture& flyTex
 )
 {
+    // ---- 新增：启动游戏背景音乐 ----
+    if (m_gameMusic && m_gameMusic->getStatus() != sf::Music::Status::Playing)
+    {
+        m_gameMusic->play();
+    }
     // 首次生成初始障碍（obsCarTex外部）
     SpawnObstacles(obsCarTex);
     RefreshSpawnItems(nitroTex, flyTex, myplayer.pos);
     while (app.isOpen())
     {
         float dt = gameClock.restart().asSeconds();
-        HandleEventLoop(obsCarTex,  nitroTex, flyTex);
+        HandleEventLoop(obsCarTex, nitroTex, flyTex);
 
-        
 
-        UpdateGameLogic(playerCar,dt);
-        RenderScene(t, bg, sBackground, playerCar, obsCarTex, nitroTex, flyTex);
+
+        UpdateGameLogic(playerCar, dt);
+
+        RenderScene(t, bg, sBackground, playerCar, obsCarTex, nitroTex,
+            flyTex);
     }
 }
