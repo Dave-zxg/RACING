@@ -1,6 +1,7 @@
 #ifndef GAMEHUD_H
 #define GAMEHUD_H
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>   // 新增
 #include <string>
 #include <memory>
 
@@ -11,12 +12,12 @@ class GameHUD
 public:
     GameHUD();
     void UpdateScore(int score);
-    void UpdateBest(int bestScore); // 新增
+    void UpdateBest(int bestScore);
     void UpdateTimer(float second);
     void UpdateItemStatus(float nitro, float fly, bool nitroPending, bool flyPending);
-    void UpdateDeviateCountdown(float devTime);
     void SetGameOver(bool isOver, bool newRecord); // 修改参数
     void Render(sf::RenderWindow& win);
+    
 
 private:
     sf::Font m_hudFont;
@@ -28,6 +29,5 @@ private:
     std::unique_ptr<sf::Text> m_gameOverText;
     std::unique_ptr<sf::Text> m_nitroText;
     std::unique_ptr<sf::Text> m_flyText;
-    std::unique_ptr<sf::Text> m_deviateText;
 };
 #endif
