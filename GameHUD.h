@@ -17,8 +17,8 @@ public:
     void UpdateItemStatus(float nitro, float fly, bool nitroPending, bool flyPending);
     void UpdateDeviateCountdown(float devTime);
     void SetGameOver(bool isOver, bool newRecord); // 修改参数
-    void Render(sf::RenderWindow& win);
-    
+    void Render(sf::RenderWindow& win, bool isPaused);
+
 
 private:
     sf::Font m_hudFont;
@@ -31,5 +31,6 @@ private:
     std::unique_ptr<sf::Text> m_nitroText;
     std::unique_ptr<sf::Text> m_flyText;
     std::unique_ptr<sf::Text> m_deviateText;
+    std::unique_ptr<sf::Text> m_pauseText; // 新增暂停文字
 };
 #endif

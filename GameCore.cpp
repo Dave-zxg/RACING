@@ -192,6 +192,11 @@ void GameCore::HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf
 
                 ResetFullGame(obsCarTex, nitroTex, flyTex);
             }
+            // P键切换暂停（游戏未结束才生效）
+            if (!gameOver && keyEvt->code == sf::Keyboard::Key::P)
+            {
+                TogglePause();
+            }
         }
     }
 }
@@ -199,6 +204,8 @@ void GameCore::HandleEventLoop(sf::Texture& obsCarTex, sf::Texture& nitroTex, sf
 // 更新逻辑，仅playerCar作为外部精灵传入
 void GameCore::UpdateGameLogic(sf::Sprite& playerCar, float dt, sf::Texture& obsCarTex, sf::Texture& explodeTex)
 {
+    if (m_isPaused)
+        return;
 	bool wasGameOver = gameOver;
     UpdateItemTimer(dt);
     if (!gameOver && !myplayer.controlLock)
@@ -296,6 +303,21 @@ void GameCore::UpdateGameLogic(sf::Sprite& playerCar, float dt, sf::Texture& obs
         }
     }
 }
+
+void GameCore::TogglePause()
+{
+    m_isPaused = !m_isPaused;
+    // 可选：音乐同步暂停/恢复
+    if (m_isPaused)
+    {
+        m_gameMusic->pause();
+    }
+    else
+    {
+        m_gameMusic->play();
+    }
+}
+
 
 // 渲染：全部贴图、精灵从参数传入，内部不持有
 void GameCore::RenderScene(
@@ -457,7 +479,7 @@ void GameCore::RenderScene(
 
     app.draw(playerCar);
     UpdateDrawExplosion(dt, app, explodeTex);
-    hud.Render(app);
+    hud.Render(app,m_isPaused);
     app.display();
     // 放在UpdateGameLogic最下方，无条件生成
 }

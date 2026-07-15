@@ -19,7 +19,7 @@ public:
     // 加载玩家小车贴图，原样复制你的加载逻辑
 
     // 处理所有玩家按键输入，传入dt，修改内部speed/playerX/H
-    void HandleInput(float dt, int &pos, float &nitroTime, float &flyTime, bool &nitroPending, bool &flyPending)
+    void HandleInput(float dt, int& pos, float& nitroTime, float& flyTime, bool& nitroPending, bool& flyPending)
     {
         speed = 0;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
@@ -52,7 +52,7 @@ public:
             speed *= 2.f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) && flyTime > 0.f)
             H += 100.f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) && H > 1500)
             H -= 100.f;
         pos += speed;
     }
@@ -66,7 +66,7 @@ public:
         }
         return false;
     }
-    void ResetPlayer(int &pos)
+    void ResetPlayer(int& pos)
     {
         playerX = 0.f;
         pos = 0;
@@ -78,7 +78,7 @@ public:
         screenX = screenY = screenW = scale = 0;
     }
     virtual void project(int camX, int camY, int camZ) override;
-    virtual void render(sf::RenderWindow &win) override;
+    virtual void render(sf::RenderWindow& win) override;
     virtual void update(float dt) override;
 };
 
